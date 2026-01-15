@@ -2,7 +2,9 @@ import { useState } from "react";
 import {
   SortableContext,
   verticalListSortingStrategy,
+  useSortable,
 } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import { AnimatePresence } from "framer-motion";
 import type { List as ListType } from "../types/kanban";
 import { Card } from "./Card";
@@ -26,6 +28,27 @@ export function List({
   const [isAddingCard, setIsAddingCard] = useState(false);
   const [newCardTitle, setNewCardTitle] = useState("");
 
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({
+    id,
+    data: {
+      type: "List",
+      list: { id, title },
+    },
+  });
+
+  const style = {
+    transform: CSS.Translate.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
   function handleAddCard() {
     const trimmedTitle = newCardTitle.trim();
     if (!trimmedTitle) {
@@ -38,13 +61,22 @@ export function List({
   }
 
   return (
-    <div className="w-72 flex-shrink-0 rounded-lg bg-slate-100 p-4 transition-colors dark:bg-slate-800">
-      <div className="mb-3 flex items-center justify-between gap-2">
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="w-72 flex-shrink-0 rounded-lg bg-slate-100 p-4 transition-colors dark:bg-slate-800"
+    >
+      <div
+        {...attributes}
+        {...listeners}
+        className="mb-3 flex cursor-grab items-center justify-between gap-2 active:cursor-grabbing"
+      >
         <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
           {title}
         </h3>
         <button
           type="button"
+          onPointerDown={(e) => e.stopPropagation()}
           onClick={() => onDeleteList(id)}
           className="rounded p-1 text-xs text-slate-500 hover:bg-slate-200 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-slate-200"
         >

@@ -231,7 +231,9 @@ export function Board(props: BoardProps) {
   return (
     <div className="p-6">
       <header className="mb-6">
-        <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-50">{board.title}</h1>
+        <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-50">
+          {board.title}
+        </h1>
       </header>
       <section className="mb-4 flex gap-2">
         <input
@@ -249,20 +251,25 @@ export function Board(props: BoardProps) {
         </button>
       </section>
       <DndContext collisionDetection={closestCorners} onDragEnd={handleDragEnd}>
-        <main className="flex gap-4 overflow-x-auto pb-4">
-          {board.lists.map((list) => (
-            <List
-              key={list.id}
-              {...list}
-              onAddCard={addCard}
-              onDeleteCard={deleteCard}
-              onDeleteList={deleteList}
-              onOpenCard={(listId, cardId) =>
-                setSelectedCard({ listId, cardId })
-              }
-            />
-          ))}
-        </main>
+        <div className="flex gap-4 overflow-x-auto pb-4">
+          <SortableContext
+            items={board.lists.map((list) => list.id)}
+            strategy={horizontalListSortingStrategy}
+          >
+            {board.lists.map((list) => (
+              <List
+                key={list.id}
+                {...list}
+                onAddCard={addCard}
+                onDeleteCard={deleteCard}
+                onDeleteList={deleteList}
+                onOpenCard={(listId, cardId) =>
+                  setSelectedCard({ listId, cardId })
+                }
+              />
+            ))}
+          </SortableContext>
+        </div>
       </DndContext>
       <AnimatePresence>
         {selectedCardData && (
