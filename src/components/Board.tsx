@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { AnimatePresence } from "framer-motion";
 import { DndContext, closestCorners, type DragEndEvent } from "@dnd-kit/core";
 import { arrayMove } from "@dnd-kit/sortable";
 import type { Board as BoardType, Card } from "../types/kanban";
@@ -263,16 +264,22 @@ export function Board(props: BoardProps) {
           ))}
         </main>
       </DndContext>
-      {selectedCardData && (
-        <CardModal
-          card={selectedCardData.card}
-          onClose={() => setSelectedCard(null)}
-          onSave={(data) => {
-            updateCard(selectedCardData.listId, selectedCardData.card.id, data);
-            setSelectedCard(null);
-          }}
-        />
-      )}
+      <AnimatePresence>
+        {selectedCardData && (
+          <CardModal
+            card={selectedCardData.card}
+            onClose={() => setSelectedCard(null)}
+            onSave={(data) => {
+              updateCard(
+                selectedCardData.listId,
+                selectedCardData.card.id,
+                data
+              );
+              setSelectedCard(null);
+            }}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { motion } from "framer-motion";
 import type { Card, Label } from "../types/kanban";
 import { AVAILABLE_LABELS } from "../data/labels";
 
@@ -43,8 +44,19 @@ export function CardModal({ card, onClose, onSave }: CardModalProps) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60">
-      <div className="w-full max-w-lg rounded-lg bg-white p-6 text-slate-900 shadow-xl">
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60"
+    >
+      <motion.div
+        initial={{ scale: 0.9, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.9, opacity: 0 }}
+        transition={{ type: "spring", duration: 0.3 }}
+        className="w-full max-w-lg rounded-lg bg-white p-6 text-slate-900 shadow-xl"
+      >
         <div className="mb-4 flex items-center justify-between gap-4">
           <h2 className="text-lg font-semibold">Detalhes do cartão</h2>
           <button
@@ -120,7 +132,7 @@ export function CardModal({ card, onClose, onSave }: CardModalProps) {
             Salvar
           </button>
         </div>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 }

@@ -3,6 +3,7 @@ import {
   SortableContext,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
+import { AnimatePresence } from "framer-motion";
 import type { List as ListType } from "../types/kanban";
 import { Card } from "./Card";
 
@@ -53,15 +54,17 @@ export function List({
         id={id}
         strategy={verticalListSortingStrategy}
       >
-        <div>
-          {cards.map((card) => (
-            <Card
-              key={card.id}
-              {...card}
-              onDelete={() => onDeleteCard(id, card.id)}
-              onOpen={() => onOpenCard(id, card.id)}
-            />
-          ))}
+        <div className="flex flex-col gap-2">
+          <AnimatePresence mode="popLayout" initial={false}>
+            {cards.map((card) => (
+              <Card
+                key={card.id}
+                {...card}
+                onDelete={() => onDeleteCard(id, card.id)}
+                onOpen={() => onOpenCard(id, card.id)}
+              />
+            ))}
+          </AnimatePresence>
         </div>
       </SortableContext>
       <div className="mt-3">
@@ -99,7 +102,7 @@ export function List({
             onClick={() => setIsAddingCard(true)}
             className="text-xs font-medium text-slate-500 hover:text-slate-700"
           >
-            Adicionar outro cartão
+            + Adicionar outro cartão
           </button>
         )}
       </div>

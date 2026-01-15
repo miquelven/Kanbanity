@@ -1,4 +1,5 @@
 import { useSortable } from "@dnd-kit/sortable";
+import { motion } from "framer-motion";
 import type { Card as CardType } from "../types/kanban";
 
 type CardProps = CardType & {
@@ -34,10 +35,15 @@ export function Card({
   };
 
   return (
-    <div
+    <motion.div
       ref={setNodeRef}
       style={style}
-      className="group mb-2 cursor-grab rounded-lg bg-white p-3 shadow active:cursor-grabbing"
+      layout
+      initial={{ opacity: 0, scale: 0.8 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.8 }}
+      transition={{ duration: 0.2 }}
+      className="group cursor-grab rounded-lg bg-white p-3 shadow active:cursor-grabbing"
       {...attributes}
       {...listeners}
       onClick={() => onOpen?.()}
@@ -74,6 +80,6 @@ export function Card({
         )}
       </div>
       {content && <p className="mt-1 text-xs text-gray-600">{content}</p>}
-    </div>
+    </motion.div>
   );
 }
