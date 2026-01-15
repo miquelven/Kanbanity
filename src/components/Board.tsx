@@ -1,15 +1,30 @@
 import { useState } from "react";
 import { AnimatePresence } from "framer-motion";
-import { DndContext, closestCorners, type DragEndEvent } from "@dnd-kit/core";
+import {
+  DndContext,
+  closestCorners,
+  type DragEndEvent,
+  DragOverlay,
+  type DragStartEvent,
+  defaultDropAnimationSideEffects,
+  type DropAnimation,
+} from "@dnd-kit/core";
 import {
   arrayMove,
   horizontalListSortingStrategy,
   SortableContext,
 } from "@dnd-kit/sortable";
-import type { Board as BoardType, Card, Label } from "../types/kanban";
+import type {
+  Board as BoardType,
+  Card as CardType,
+  Label,
+  List as ListType,
+} from "../types/kanban";
 import { usePersistentState } from "../hooks/usePersistentState";
-import { List } from "./List";
+import { List, ListContent } from "./List";
 import { CardModal } from "./CardModal";
+import { CardContent } from "./Card";
+import { createPortal } from "react-dom";
 
 type BoardProps = BoardType;
 
@@ -17,6 +32,21 @@ type SelectedCard = {
   listId: string;
   cardId: string;
 } | null;
+
+type DragItem =
+  | { type: "List"; data: ListType }
+  | { type: "Card"; data: CardType & { listId: string } }
+  | null;
+
+const dropAnimation: DropAnimation = {
+  sideEffects: defaultDropAnimationSideEffects({
+    styles: {
+      active: {
+        opacity: "0.5",
+      },
+    },
+  }),
+};
 
 export function Board(props: BoardProps) {
   const [board, setBoard] = usePersistentState<BoardType>(
@@ -27,6 +57,7 @@ export function Board(props: BoardProps) {
   const [selectedCard, setSelectedCard] = useState<SelectedCard>(null);
   const [newCardListId, setNewCardListId] = useState<string | null>(null);
   const [newListTitle, setNewListTitle] = useState("");
+  const [activeDragItem, setActiveDragItem] = useState<DragItem>(null);
 
   function createId(prefix: string) {
     return `${prefix}-${Math.random().toString(36).slice(2, 9)}`;
@@ -112,7 +143,11 @@ export function Board(props: BoardProps) {
     }));
   }
 
-  function updateCard(listId: string, cardId: string, newData: Partial<Card>) {
+  function updateCard(
+    listId: string,
+    cardId: string,
+    newData: Partial<CardType>
+  ) {
     setBoard((currentBoard) => ({
       ...currentBoard,
       lists: currentBoard.lists.map((list) => {
@@ -130,7 +165,30 @@ export function Board(props: BoardProps) {
     }));
   }
 
+  function handleDragStart(event: DragStartEvent) {
+    const { active } = event;
+    const activeType = active.data.current?.type;
+
+    if (activeType === "List") {
+      const list = board.lists.find((l) => l.id === active.id);
+      if (list) {
+        setActiveDragItem({ type: "List", data: list });
+      }
+      return;
+    }
+
+    if (activeType === "Card") {
+      const listId = active.data.current?.listId;
+      const list = board.lists.find((l) => l.id === listId);
+      const card = list?.cards.find((c) => c.id === active.id);
+      if (card && list) {
+        setActiveDragItem({ type: "Card", data: { ...card, listId: list.id } });
+      }
+    }
+  }
+
   function handleDragEnd(event: DragEndEvent) {
+    setActiveDragItem(null);
     const { active, over } = event;
 
     if (!over) {
@@ -312,7 +370,11 @@ export function Board(props: BoardProps) {
           Adicionar lista
         </button>
       </section>
-      <DndContext collisionDetection={closestCorners} onDragEnd={handleDragEnd}>
+      <DndContext
+        collisionDetection={closestCorners}
+        onDragStart={handleDragStart}
+        onDragEnd={handleDragEnd}
+      >
         <div className="flex gap-4 overflow-x-auto pb-4">
           <SortableContext
             items={board.lists.map((list) => list.id)}
@@ -332,6 +394,25 @@ export function Board(props: BoardProps) {
             ))}
           </SortableContext>
         </div>
+        {createPortal(
+          <DragOverlay dropAnimation={dropAnimation}>
+            {activeDragItem ? (
+              activeDragItem.type === "Card" ? (
+                <CardContent {...activeDragItem.data} dragOverlay />
+              ) : (
+                <ListContent
+                  {...activeDragItem.data}
+                  onStartAddCard={() => {}}
+                  onDeleteCard={() => {}}
+                  onDeleteList={() => {}}
+                  onOpenCard={() => {}}
+                  dragOverlay
+                />
+              )
+            ) : null}
+          </DragOverlay>,
+          document.body
+        )}
       </DndContext>
       <AnimatePresence>
         {selectedCardData && (
