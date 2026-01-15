@@ -61,7 +61,7 @@ export function Card({
         </div>
       )}
       <div className="mb-1 flex items-start justify-between gap-2">
-        <h4 className="text-sm font-semibold text-gray-900">{title}</h4>
+        <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-100">{title}</h4>
         {onDelete && (
           <button
             type="button"
@@ -73,13 +73,13 @@ export function Card({
                 onDelete();
               }
             }}
-            className="hidden rounded p-1 text-[10px] text-gray-400 hover:bg-gray-100 hover:text-gray-700 group-hover:inline-flex"
+            className="hidden rounded p-1 text-[10px] text-gray-400 hover:bg-gray-100 hover:text-gray-700 group-hover:inline-flex dark:text-gray-400 dark:hover:bg-gray-600 dark:hover:text-gray-200"
           >
             ×
           </button>
         )}
       </div>
-      {content && <p className="mt-1 text-xs text-gray-600">{content}</p>}
-    </motion.div>
+      {content && <p className="mt-1 text-xs text-gray-600 dark:text-gray-300">{content}</p>}
+    </motion.div>>
   );
 }
