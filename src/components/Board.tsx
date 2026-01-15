@@ -1,13 +1,16 @@
-import { useState } from "react";
 import { DndContext, closestCorners, type DragEndEvent } from "@dnd-kit/core";
 import { arrayMove } from "@dnd-kit/sortable";
 import type { Board as BoardType } from "../types/kanban";
+import { usePersistentState } from "../hooks/usePersistentState";
 import { List } from "./List";
 
 type BoardProps = BoardType;
 
 export function Board(props: BoardProps) {
-  const [board, setBoard] = useState<BoardType>(props);
+  const [board, setBoard] = usePersistentState<BoardType>(
+    "kanbanity-board",
+    props
+  );
 
   function findListByCardId(cardId: string) {
     return board.lists.find((list) =>
