@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { DndContext, closestCorners, type DragEndEvent } from "@dnd-kit/core";
 import { arrayMove } from "@dnd-kit/sortable";
 import type { Board as BoardType } from "../types/kanban";
@@ -11,6 +12,91 @@ export function Board(props: BoardProps) {
     "kanbanity-board",
     props
   );
+
+  const [newListTitle, setNewListTitle] = useState("");
+
+  function createId(prefix: string) {
+    return `${prefix}-${Math.random().toString(36).slice(2, 9)}`;
+  }
+
+  function addList(title: string) {
+    const trimmedTitle = title.trim();
+    if (!trimmedTitle) {
+      return;
+    }
+
+    setBoard((currentBoard) => ({
+      ...currentBoard,
+      lists: [
+        ...currentBoard.lists,
+        {
+          id: createId("list"),
+          title: trimmedTitle,
+          cards: [],
+        },
+      ],
+    }));
+
+    setNewListTitle("");
+  }
+
+  function deleteList(listId: string) {
+    if (!window.confirm("Tem certeza que deseja excluir esta lista?")) {
+      return;
+    }
+
+    setBoard((currentBoard) => ({
+      ...currentBoard,
+      lists: currentBoard.lists.filter((list) => list.id !== listId),
+    }));
+  }
+
+  function addCard(listId: string, cardTitle: string) {
+    const trimmedTitle = cardTitle.trim();
+    if (!trimmedTitle) {
+      return;
+    }
+
+    setBoard((currentBoard) => ({
+      ...currentBoard,
+      lists: currentBoard.lists.map((list) => {
+        if (list.id !== listId) {
+          return list;
+        }
+
+        return {
+          ...list,
+          cards: [
+            ...list.cards,
+            {
+              id: createId("card"),
+              title: trimmedTitle,
+            },
+          ],
+        };
+      }),
+    }));
+  }
+
+  function deleteCard(listId: string, cardId: string) {
+    if (!window.confirm("Tem certeza que deseja excluir este cartão?")) {
+      return;
+    }
+
+    setBoard((currentBoard) => ({
+      ...currentBoard,
+      lists: currentBoard.lists.map((list) => {
+        if (list.id !== listId) {
+          return list;
+        }
+
+        return {
+          ...list,
+          cards: list.cards.filter((card) => card.id !== cardId),
+        };
+      }),
+    }));
+  }
 
   function findListByCardId(cardId: string) {
     return board.lists.find((list) =>
@@ -104,10 +190,31 @@ export function Board(props: BoardProps) {
       <header className="mb-6">
         <h1 className="text-2xl font-bold">{board.title}</h1>
       </header>
+      <section className="mb-4 flex gap-2">
+        <input
+          value={newListTitle}
+          onChange={(event) => setNewListTitle(event.target.value)}
+          placeholder="Nova lista"
+          className="flex-1 rounded-md border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-slate-50 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500"
+        />
+        <button
+          type="button"
+          onClick={() => addList(newListTitle)}
+          className="rounded-md bg-sky-600 px-3 py-2 text-sm font-medium text-white hover:bg-sky-500"
+        >
+          Adicionar lista
+        </button>
+      </section>
       <DndContext collisionDetection={closestCorners} onDragEnd={handleDragEnd}>
         <main className="flex gap-4 overflow-x-auto">
           {board.lists.map((list) => (
-            <List key={list.id} {...list} />
+            <List
+              key={list.id}
+              {...list}
+              onAddCard={addCard}
+              onDeleteCard={deleteCard}
+              onDeleteList={deleteList}
+            />
           ))}
         </main>
       </DndContext>
