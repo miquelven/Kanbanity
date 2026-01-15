@@ -3,9 +3,10 @@ import type { Card as CardType } from "../types/kanban";
 
 type CardProps = CardType & {
   onDelete?: () => void;
+  onOpen?: () => void;
 };
 
-export function Card({ id, title, content, onDelete }: CardProps) {
+export function Card({ id, title, content, onDelete, onOpen }: CardProps) {
   const {
     attributes,
     listeners,
@@ -32,6 +33,7 @@ export function Card({ id, title, content, onDelete }: CardProps) {
       className="group mb-2 cursor-grab rounded-lg bg-white p-3 shadow active:cursor-grabbing"
       {...attributes}
       {...listeners}
+      onClick={() => onOpen?.()}
     >
       <div className="mb-1 flex items-start justify-between gap-2">
         <h4 className="text-sm font-semibold text-gray-900">{title}</h4>

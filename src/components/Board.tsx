@@ -1,11 +1,17 @@
 import { useState } from "react";
 import { DndContext, closestCorners, type DragEndEvent } from "@dnd-kit/core";
 import { arrayMove } from "@dnd-kit/sortable";
-import type { Board as BoardType } from "../types/kanban";
+import type { Board as BoardType, Card } from "../types/kanban";
 import { usePersistentState } from "../hooks/usePersistentState";
 import { List } from "./List";
+import { CardModal } from "./CardModal";
 
 type BoardProps = BoardType;
+
+type SelectedCard = {
+  listId: string;
+  cardId: string;
+} | null;
 
 export function Board(props: BoardProps) {
   const [board, setBoard] = usePersistentState<BoardType>(
@@ -13,6 +19,7 @@ export function Board(props: BoardProps) {
     props
   );
 
+  const [selectedCard, setSelectedCard] = useState<SelectedCard>(null);
   const [newListTitle, setNewListTitle] = useState("");
 
   function createId(prefix: string) {
@@ -93,6 +100,24 @@ export function Board(props: BoardProps) {
         return {
           ...list,
           cards: list.cards.filter((card) => card.id !== cardId),
+        };
+      }),
+    }));
+  }
+
+  function updateCard(listId: string, cardId: string, newData: Partial<Card>) {
+    setBoard((currentBoard) => ({
+      ...currentBoard,
+      lists: currentBoard.lists.map((list) => {
+        if (list.id !== listId) {
+          return list;
+        }
+
+        return {
+          ...list,
+          cards: list.cards.map((card) =>
+            card.id === cardId ? { ...card, ...newData } : card
+          ),
         };
       }),
     }));
@@ -185,6 +210,22 @@ export function Board(props: BoardProps) {
     });
   }
 
+  const selectedCardData =
+    selectedCard &&
+    (() => {
+      const list = board.lists.find((item) => item.id === selectedCard.listId);
+      if (!list) {
+        return null;
+      }
+
+      const card = list.cards.find((item) => item.id === selectedCard.cardId);
+      if (!card) {
+        return null;
+      }
+
+      return { listId: list.id, card };
+    })();
+
   return (
     <div className="min-h-screen bg-slate-900 p-6 text-slate-50">
       <header className="mb-6">
@@ -214,10 +255,23 @@ export function Board(props: BoardProps) {
               onAddCard={addCard}
               onDeleteCard={deleteCard}
               onDeleteList={deleteList}
+              onOpenCard={(listId, cardId) =>
+                setSelectedCard({ listId, cardId })
+              }
             />
           ))}
         </main>
       </DndContext>
+      {selectedCardData && (
+        <CardModal
+          card={selectedCardData.card}
+          onClose={() => setSelectedCard(null)}
+          onSave={(data) => {
+            updateCard(selectedCardData.listId, selectedCardData.card.id, data);
+            setSelectedCard(null);
+          }}
+        />
+      )}
     </div>
   );
 }

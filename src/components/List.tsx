@@ -10,6 +10,7 @@ type ListProps = ListType & {
   onAddCard: (listId: string, cardTitle: string) => void;
   onDeleteCard: (listId: string, cardId: string) => void;
   onDeleteList: (listId: string) => void;
+  onOpenCard: (listId: string, cardId: string) => void;
 };
 
 export function List({
@@ -19,6 +20,7 @@ export function List({
   onAddCard,
   onDeleteCard,
   onDeleteList,
+  onOpenCard,
 }: ListProps) {
   const [isAddingCard, setIsAddingCard] = useState(false);
   const [newCardTitle, setNewCardTitle] = useState("");
@@ -57,6 +59,7 @@ export function List({
               key={card.id}
               {...card}
               onDelete={() => onDeleteCard(id, card.id)}
+              onOpen={() => onOpenCard(id, card.id)}
             />
           ))}
         </div>
