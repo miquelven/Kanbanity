@@ -1,4 +1,4 @@
-import { useTheme } from "../contexts/ThemeContext";
+import { useTheme } from "../contexts/theme";
 
 export function ThemeToggle() {
   const { theme, toggleTheme } = useTheme();
@@ -8,7 +8,9 @@ export function ThemeToggle() {
       onClick={toggleTheme}
       className="rounded-full bg-slate-200 p-2 text-slate-800 transition-colors hover:bg-slate-300 dark:bg-slate-700 dark:text-yellow-400 dark:hover:bg-slate-600"
       aria-label="Alternar tema"
-      title={theme === "light" ? "Mudar para modo escuro" : "Mudar para modo claro"}
+      title={
+        theme === "light" ? "Mudar para modo escuro" : "Mudar para modo claro"
+      }
     >
       {theme === "light" ? (
         <svg
