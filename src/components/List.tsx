@@ -1,4 +1,3 @@
-import { useState } from "react";
 import {
   SortableContext,
   verticalListSortingStrategy,
@@ -10,7 +9,7 @@ import type { List as ListType } from "../types/kanban";
 import { Card } from "./Card";
 
 type ListProps = ListType & {
-  onAddCard: (listId: string, cardTitle: string) => void;
+  onStartAddCard: (listId: string) => void;
   onDeleteCard: (listId: string, cardId: string) => void;
   onDeleteList: (listId: string) => void;
   onOpenCard: (listId: string, cardId: string) => void;
@@ -20,14 +19,11 @@ export function List({
   id,
   title,
   cards,
-  onAddCard,
+  onStartAddCard,
   onDeleteCard,
   onDeleteList,
   onOpenCard,
 }: ListProps) {
-  const [isAddingCard, setIsAddingCard] = useState(false);
-  const [newCardTitle, setNewCardTitle] = useState("");
-
   const {
     attributes,
     listeners,
@@ -48,17 +44,6 @@ export function List({
     transition,
     opacity: isDragging ? 0.5 : 1,
   };
-
-  function handleAddCard() {
-    const trimmedTitle = newCardTitle.trim();
-    if (!trimmedTitle) {
-      return;
-    }
-
-    onAddCard(id, trimmedTitle);
-    setNewCardTitle("");
-    setIsAddingCard(false);
-  }
 
   return (
     <div
@@ -94,6 +79,7 @@ export function List({
               <Card
                 key={card.id}
                 {...card}
+                listId={id}
                 onDelete={() => onDeleteCard(id, card.id)}
                 onOpen={() => onOpenCard(id, card.id)}
               />
@@ -102,43 +88,13 @@ export function List({
         </div>
       </SortableContext>
       <div className="mt-3">
-        {isAddingCard ? (
-          <div className="space-y-2">
-            <input
-              value={newCardTitle}
-              onChange={(event) => setNewCardTitle(event.target.value)}
-              placeholder="Título do cartão"
-              className="w-full rounded-md border border-slate-300 px-2 py-1 text-xs focus:outline-none focus:ring-2 focus:ring-sky-500 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100"
-            />
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={handleAddCard}
-                className="rounded-md bg-sky-600 px-2 py-1 text-xs font-medium text-white hover:bg-sky-500 dark:bg-sky-600 dark:hover:bg-sky-500"
-              >
-                Adicionar cartão
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setIsAddingCard(false);
-                  setNewCardTitle("");
-                }}
-                className="text-xs text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300"
-              >
-                Cancelar
-              </button>
-            </div>
-          </div>
-        ) : (
-          <button
-            type="button"
-            onClick={() => setIsAddingCard(true)}
-            className="text-xs font-medium text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300"
-          >
-            + Adicionar outro cartão
-          </button>
-        )}
+        <button
+          type="button"
+          onClick={() => onStartAddCard(id)}
+          className="text-xs font-medium text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300"
+        >
+          + Adicionar outro cartão
+        </button>
       </div>
     </div>
   );

@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import type { Card as CardType } from "../types/kanban";
 
 type CardProps = CardType & {
+  listId: string;
   onDelete?: () => void;
   onOpen?: () => void;
 };
@@ -12,6 +13,7 @@ export function Card({
   title,
   content,
   labels,
+  listId,
   onDelete,
   onOpen,
 }: CardProps) {
@@ -24,6 +26,10 @@ export function Card({
     isDragging,
   } = useSortable({
     id,
+    data: {
+      type: "Card",
+      listId,
+    },
   });
 
   const style: React.CSSProperties = {
@@ -43,10 +49,9 @@ export function Card({
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.8 }}
       transition={{ duration: 0.2 }}
-      className="group cursor-grab rounded-lg bg-white p-3 shadow active:cursor-grabbing"
+      className="group cursor-grab rounded-lg bg-white p-3 shadow transition-colors active:cursor-grabbing dark:bg-slate-700"
       {...attributes}
       {...listeners}
-      onClick={() => onOpen?.()}
     >
       {labels && labels.length > 0 && (
         <div className="mb-2 flex flex-wrap gap-1">
@@ -86,6 +91,19 @@ export function Card({
           {content}
         </p>
       )}
+      <div className="mt-2 flex justify-end">
+        <button
+          type="button"
+          onPointerDown={(event) => event.stopPropagation()}
+          onClick={(event) => {
+            event.stopPropagation();
+            onOpen?.();
+          }}
+          className="rounded-md px-2 py-1 text-xs font-medium text-sky-600 hover:bg-sky-50 hover:text-sky-700 dark:text-sky-400 dark:hover:bg-slate-600 dark:hover:text-sky-300"
+        >
+          Abrir
+        </button>
+      </div>
     </motion.div>
   );
 }

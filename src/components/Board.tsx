@@ -6,7 +6,7 @@ import {
   horizontalListSortingStrategy,
   SortableContext,
 } from "@dnd-kit/sortable";
-import type { Board as BoardType, Card } from "../types/kanban";
+import type { Board as BoardType, Card, Label } from "../types/kanban";
 import { usePersistentState } from "../hooks/usePersistentState";
 import { List } from "./List";
 import { CardModal } from "./CardModal";
@@ -25,6 +25,7 @@ export function Board(props: BoardProps) {
   );
 
   const [selectedCard, setSelectedCard] = useState<SelectedCard>(null);
+  const [newCardListId, setNewCardListId] = useState<string | null>(null);
   const [newListTitle, setNewListTitle] = useState("");
 
   function createId(prefix: string) {
@@ -63,8 +64,11 @@ export function Board(props: BoardProps) {
     }));
   }
 
-  function addCard(listId: string, cardTitle: string) {
-    const trimmedTitle = cardTitle.trim();
+  function addCard(
+    listId: string,
+    data: { title: string; content?: string; labels: Label[] }
+  ) {
+    const trimmedTitle = data.title.trim();
     if (!trimmedTitle) {
       return;
     }
@@ -83,7 +87,8 @@ export function Board(props: BoardProps) {
             {
               id: createId("card"),
               title: trimmedTitle,
-              labels: [],
+              content: data.content,
+              labels: data.labels,
             },
           ],
         };
@@ -92,10 +97,6 @@ export function Board(props: BoardProps) {
   }
 
   function deleteCard(listId: string, cardId: string) {
-    if (!window.confirm("Tem certeza que deseja excluir este cartão?")) {
-      return;
-    }
-
     setBoard((currentBoard) => ({
       ...currentBoard,
       lists: currentBoard.lists.map((list) => {
@@ -129,91 +130,148 @@ export function Board(props: BoardProps) {
     }));
   }
 
-  function findListByCardId(cardId: string) {
-    return board.lists.find((list) =>
-      list.cards.some((card) => card.id === cardId)
-    );
-  }
-
   function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event;
 
-    if (!over || active.id === over.id) {
+    if (!over) {
       return;
     }
 
-    const sourceList = findListByCardId(String(active.id));
-    const destinationList = findListByCardId(String(over.id));
+    const activeType = active.data.current?.type;
+    const overType = over.data.current?.type;
 
-    if (!sourceList || !destinationList) {
-      return;
-    }
+    if (activeType === "List" && overType === "List") {
+      if (active.id === over.id) {
+        return;
+      }
 
-    const sourceListIndex = board.lists.findIndex(
-      (list) => list.id === sourceList.id
-    );
-    const destinationListIndex = board.lists.findIndex(
-      (list) => list.id === destinationList.id
-    );
+      setBoard((currentBoard) => {
+        const oldIndex = currentBoard.lists.findIndex(
+          (list) => list.id === active.id
+        );
+        const newIndex = currentBoard.lists.findIndex(
+          (list) => list.id === over.id
+        );
 
-    const sourceCards = [...sourceList.cards];
-    const destinationCards =
-      sourceList.id === destinationList.id
-        ? sourceCards
-        : [...destinationList.cards];
+        if (oldIndex === -1 || newIndex === -1) {
+          return currentBoard;
+        }
 
-    const activeCardIndex = sourceCards.findIndex(
-      (card) => card.id === active.id
-    );
-    const overCardIndex = destinationCards.findIndex(
-      (card) => card.id === over.id
-    );
-
-    if (activeCardIndex === -1 || overCardIndex === -1) {
-      return;
-    }
-
-    if (sourceList.id === destinationList.id) {
-      const reorderedCards = arrayMove(
-        sourceCards,
-        activeCardIndex,
-        overCardIndex
-      );
-
-      const updatedLists = [...board.lists];
-      updatedLists[sourceListIndex] = {
-        ...sourceList,
-        cards: reorderedCards,
-      };
-
-      setBoard({
-        ...board,
-        lists: updatedLists,
+        return {
+          ...currentBoard,
+          lists: arrayMove(currentBoard.lists, oldIndex, newIndex),
+        };
       });
 
       return;
     }
 
-    const [movedCard] = sourceCards.splice(activeCardIndex, 1);
-    const updatedDestinationCards = [...destinationCards];
-    updatedDestinationCards.splice(overCardIndex, 0, movedCard);
+    if (activeType === "Card") {
+      const activeCardId = String(active.id);
+      const overId = String(over.id);
+      const sourceListId = active.data.current?.listId as string;
 
-    const updatedLists = [...board.lists];
+      let destinationListId: string;
 
-    updatedLists[sourceListIndex] = {
-      ...sourceList,
-      cards: sourceCards,
-    };
+      if (overType === "Card") {
+        destinationListId = over.data.current?.listId as string;
+      } else if (overType === "List") {
+        destinationListId = String(over.id);
+      } else {
+        destinationListId = sourceListId;
+      }
 
-    updatedLists[destinationListIndex] = {
-      ...destinationList,
-      cards: updatedDestinationCards,
-    };
+      if (sourceListId === destinationListId && active.id === over.id) {
+        return;
+      }
 
-    setBoard({
-      ...board,
-      lists: updatedLists,
-    });
+      setBoard((currentBoard) => {
+        const sourceListIndex = currentBoard.lists.findIndex(
+          (list) => list.id === sourceListId
+        );
+        const destinationListIndex = currentBoard.lists.findIndex(
+          (list) => list.id === destinationListId
+        );
+
+        if (sourceListIndex === -1 || destinationListIndex === -1) {
+          return currentBoard;
+        }
+
+        const sourceList = currentBoard.lists[sourceListIndex];
+        const destinationList = currentBoard.lists[destinationListIndex];
+
+        const sourceCards = [...sourceList.cards];
+        const activeCardIndex = sourceCards.findIndex(
+          (card) => card.id === activeCardId
+        );
+
+        if (activeCardIndex === -1) {
+          return currentBoard;
+        }
+
+        if (sourceListId === destinationListId) {
+          const destinationCards = [...sourceCards];
+
+          const overCardIndex =
+            overType === "Card"
+              ? destinationCards.findIndex((card) => card.id === overId)
+              : destinationCards.length - 1;
+
+          if (overCardIndex === -1) {
+            return currentBoard;
+          }
+
+          const reorderedCards = arrayMove(
+            destinationCards,
+            activeCardIndex,
+            overCardIndex
+          );
+
+          const newLists = [...currentBoard.lists];
+          newLists[sourceListIndex] = {
+            ...sourceList,
+            cards: reorderedCards,
+          };
+
+          return {
+            ...currentBoard,
+            lists: newLists,
+          };
+        }
+
+        const destinationCards = [...destinationList.cards];
+        const [movedCard] = sourceCards.splice(activeCardIndex, 1);
+
+        let destinationIndex: number;
+
+        if (overType === "Card") {
+          const overCardIndex = destinationCards.findIndex(
+            (card) => card.id === overId
+          );
+          destinationIndex =
+            overCardIndex === -1 ? destinationCards.length : overCardIndex;
+        } else {
+          destinationIndex = destinationCards.length;
+        }
+
+        destinationCards.splice(destinationIndex, 0, movedCard);
+
+        const newLists = [...currentBoard.lists];
+        newLists[sourceListIndex] = {
+          ...sourceList,
+          cards: sourceCards,
+        };
+        newLists[destinationListIndex] = {
+          ...destinationList,
+          cards: destinationCards,
+        };
+
+        return {
+          ...currentBoard,
+          lists: newLists,
+        };
+      });
+    }
   }
 
   const selectedCardData =
@@ -264,7 +322,7 @@ export function Board(props: BoardProps) {
               <List
                 key={list.id}
                 {...list}
-                onAddCard={addCard}
+                onStartAddCard={(listId) => setNewCardListId(listId)}
                 onDeleteCard={deleteCard}
                 onDeleteList={deleteList}
                 onOpenCard={(listId, cardId) =>
@@ -287,6 +345,20 @@ export function Board(props: BoardProps) {
                 data
               );
               setSelectedCard(null);
+            }}
+          />
+        )}
+        {newCardListId && (
+          <CardModal
+            card={{
+              id: "new",
+              title: "",
+              labels: [],
+            }}
+            onClose={() => setNewCardListId(null)}
+            onSave={(data) => {
+              addCard(newCardListId, data);
+              setNewCardListId(null);
             }}
           />
         )}
