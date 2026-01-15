@@ -64,13 +64,11 @@ export const CardContent = forwardRef<HTMLDivElement, CardContentProps>(
           {onDelete && (
             <button
               type="button"
+              onPointerDown={(event) => event.stopPropagation()}
               onClick={(event) => {
+                event.preventDefault();
                 event.stopPropagation();
-                if (
-                  window.confirm("Tem certeza que deseja excluir este cartão?")
-                ) {
-                  onDelete();
-                }
+                onDelete?.();
               }}
               className="opacity-0 group-hover:opacity-100 absolute -top-2 -right-2 flex h-6 w-6 items-center justify-center rounded-full bg-red-100 text-red-600 shadow-sm transition-all hover:bg-red-200 hover:scale-110 dark:bg-red-900/30 dark:text-red-400 dark:hover:bg-red-900/50"
               aria-label="Deletar cartão"

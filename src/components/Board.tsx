@@ -8,6 +8,9 @@ import {
   type DragStartEvent,
   defaultDropAnimationSideEffects,
   type DropAnimation,
+  PointerSensor,
+  useSensor,
+  useSensors,
 } from "@dnd-kit/core";
 import {
   arrayMove,
@@ -33,19 +36,18 @@ type SelectedCard = {
   cardId: string;
 } | null;
 
+type DeleteTarget =
+  | { type: "list"; listId: string }
+  | { type: "card"; listId: string; cardId: string }
+  | null;
+
 type DragItem =
   | { type: "List"; data: ListType }
   | { type: "Card"; data: CardType & { listId: string } }
   | null;
 
 const dropAnimation: DropAnimation = {
-  sideEffects: defaultDropAnimationSideEffects({
-    styles: {
-      active: {
-        opacity: "0.5",
-      },
-    },
-  }),
+  sideEffects: defaultDropAnimationSideEffects({}),
 };
 
 export function Board(props: BoardProps) {
@@ -58,6 +60,15 @@ export function Board(props: BoardProps) {
   const [newCardListId, setNewCardListId] = useState<string | null>(null);
   const [newListTitle, setNewListTitle] = useState("");
   const [activeDragItem, setActiveDragItem] = useState<DragItem>(null);
+  const [deleteTarget, setDeleteTarget] = useState<DeleteTarget>(null);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    })
+  );
 
   function createId(prefix: string) {
     return `${prefix}-${Math.random().toString(36).slice(2, 9)}`;
@@ -85,10 +96,6 @@ export function Board(props: BoardProps) {
   }
 
   function deleteList(listId: string) {
-    if (!window.confirm("Tem certeza que deseja excluir esta lista?")) {
-      return;
-    }
-
     setBoard((currentBoard) => ({
       ...currentBoard,
       lists: currentBoard.lists.filter((list) => list.id !== listId),
@@ -141,6 +148,14 @@ export function Board(props: BoardProps) {
         };
       }),
     }));
+  }
+
+  function requestDeleteList(listId: string) {
+    setDeleteTarget({ type: "list", listId });
+  }
+
+  function requestDeleteCard(listId: string, cardId: string) {
+    setDeleteTarget({ type: "card", listId, cardId });
   }
 
   function updateCard(
@@ -371,6 +386,7 @@ export function Board(props: BoardProps) {
         </button>
       </section>
       <DndContext
+        sensors={sensors}
         collisionDetection={closestCorners}
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
@@ -385,8 +401,8 @@ export function Board(props: BoardProps) {
                 key={list.id}
                 {...list}
                 onStartAddCard={(listId) => setNewCardListId(listId)}
-                onDeleteCard={deleteCard}
-                onDeleteList={deleteList}
+                onDeleteCard={requestDeleteCard}
+                onDeleteList={requestDeleteList}
                 onOpenCard={(listId, cardId) =>
                   setSelectedCard({ listId, cardId })
                 }
@@ -442,6 +458,48 @@ export function Board(props: BoardProps) {
               setNewCardListId(null);
             }}
           />
+        )}
+        {deleteTarget && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60">
+            <div className="w-full max-w-sm rounded-lg bg-white p-6 text-slate-900 shadow-xl dark:bg-slate-800 dark:text-slate-100">
+              <h2 className="mb-2 text-base font-semibold">
+                {deleteTarget.type === "card"
+                  ? "Excluir cartão"
+                  : "Excluir lista"}
+              </h2>
+              <p className="mb-4 text-sm text-slate-600 dark:text-slate-300">
+                {deleteTarget.type === "card"
+                  ? "Tem certeza que deseja excluir este cartão?"
+                  : "Tem certeza que deseja excluir esta lista e todos os seus cartões?"}
+              </p>
+              <div className="flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setDeleteTarget(null)}
+                  className="rounded-md px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (!deleteTarget) {
+                      return;
+                    }
+                    if (deleteTarget.type === "card") {
+                      deleteCard(deleteTarget.listId, deleteTarget.cardId);
+                    } else {
+                      deleteList(deleteTarget.listId);
+                    }
+                    setDeleteTarget(null);
+                  }}
+                  className="rounded-md bg-red-600 px-3 py-2 text-sm font-medium text-white hover:bg-red-500"
+                >
+                  Excluir
+                </button>
+              </div>
+            </div>
+          </div>
         )}
       </AnimatePresence>
     </div>
