@@ -1,7 +1,11 @@
 import { useState } from "react";
 import { AnimatePresence } from "framer-motion";
 import { DndContext, closestCorners, type DragEndEvent } from "@dnd-kit/core";
-import { arrayMove } from "@dnd-kit/sortable";
+import {
+  arrayMove,
+  horizontalListSortingStrategy,
+  SortableContext,
+} from "@dnd-kit/sortable";
 import type { Board as BoardType, Card } from "../types/kanban";
 import { usePersistentState } from "../hooks/usePersistentState";
 import { List } from "./List";
