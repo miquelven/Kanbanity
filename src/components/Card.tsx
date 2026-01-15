@@ -6,7 +6,14 @@ type CardProps = CardType & {
   onOpen?: () => void;
 };
 
-export function Card({ id, title, content, onDelete, onOpen }: CardProps) {
+export function Card({
+  id,
+  title,
+  content,
+  labels,
+  onDelete,
+  onOpen,
+}: CardProps) {
   const {
     attributes,
     listeners,
@@ -35,6 +42,18 @@ export function Card({ id, title, content, onDelete, onOpen }: CardProps) {
       {...listeners}
       onClick={() => onOpen?.()}
     >
+      {labels && labels.length > 0 && (
+        <div className="mb-2 flex flex-wrap gap-1">
+          {labels.map((label) => (
+            <span
+              key={label.id}
+              className={`rounded px-1.5 py-0.5 text-[10px] font-medium text-white ${label.color}`}
+            >
+              {label.name}
+            </span>
+          ))}
+        </div>
+      )}
       <div className="mb-1 flex items-start justify-between gap-2">
         <h4 className="text-sm font-semibold text-gray-900">{title}</h4>
         {onDelete && (

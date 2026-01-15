@@ -78,6 +78,7 @@ export function Board(props: BoardProps) {
             {
               id: createId("card"),
               title: trimmedTitle,
+              labels: [],
             },
           ],
         };

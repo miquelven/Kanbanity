@@ -1,15 +1,23 @@
 import { useState } from "react";
-import type { Card } from "../types/kanban";
+import type { Card, Label } from "../types/kanban";
+import { AVAILABLE_LABELS } from "../data/labels";
 
 type CardModalProps = {
   card: Card;
   onClose: () => void;
-  onSave: (data: { title: string; content?: string }) => void;
+  onSave: (data: {
+    title: string;
+    content?: string;
+    labels: Label[];
+  }) => void;
 };
 
 export function CardModal({ card, onClose, onSave }: CardModalProps) {
   const [title, setTitle] = useState(card.title);
   const [content, setContent] = useState(card.content ?? "");
+  const [selectedLabels, setSelectedLabels] = useState<Label[]>(
+    card.labels || []
+  );
 
   function handleSave() {
     const trimmedTitle = title.trim();
@@ -20,6 +28,17 @@ export function CardModal({ card, onClose, onSave }: CardModalProps) {
     onSave({
       title: trimmedTitle,
       content: content.trim() || undefined,
+      labels: selectedLabels,
+    });
+  }
+
+  function toggleLabel(label: Label) {
+    setSelectedLabels((current) => {
+      const isSelected = current.some((l) => l.id === label.id);
+      if (isSelected) {
+        return current.filter((l) => l.id !== label.id);
+      }
+      return [...current, label];
     });
   }
 
@@ -57,6 +76,32 @@ export function CardModal({ card, onClose, onSave }: CardModalProps) {
               rows={4}
               className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
             />
+          </div>
+          <div>
+            <label className="mb-2 block text-xs font-medium text-slate-600">
+              Etiquetas
+            </label>
+            <div className="flex flex-wrap gap-2">
+              {AVAILABLE_LABELS.map((label) => {
+                const isSelected = selectedLabels.some((l) => l.id === label.id);
+                return (
+                  <button
+                    key={label.id}
+                    type="button"
+                    onClick={() => toggleLabel(label)}
+                    className={`rounded px-2 py-1 text-xs font-medium text-white transition-all ${
+                      label.color
+                    } ${
+                      isSelected
+                        ? "ring-2 ring-slate-600 ring-offset-1"
+                        : "opacity-60 hover:opacity-100"
+                    }`}
+                  >
+                    {label.name}
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </div>
         <div className="mt-6 flex justify-end gap-2">
