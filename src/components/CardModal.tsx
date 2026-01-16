@@ -7,7 +7,13 @@ type CardModalProps = {
   availableLabels: Label[];
   onCreateLabel: (label: { name: string; color: string }) => void;
   onClose: () => void;
-  onSave: (data: { title: string; content?: string; labels: Label[] }) => void;
+  onSave: (data: {
+    title: string;
+    content?: string;
+    labels: Label[];
+    dueDate?: string;
+    priority?: "low" | "medium" | "high";
+  }) => void;
 };
 
 const LABEL_COLORS = [
@@ -31,6 +37,10 @@ export function CardModal({
 }: CardModalProps) {
   const [title, setTitle] = useState(card.title);
   const [content, setContent] = useState(card.content ?? "");
+  const [dueDate, setDueDate] = useState(card.dueDate ?? "");
+  const [priority, setPriority] = useState<
+    "low" | "medium" | "high" | undefined
+  >(card.priority);
   const [selectedLabels, setSelectedLabels] = useState<Label[]>(
     card.labels || []
   );
@@ -55,6 +65,8 @@ export function CardModal({
       title: trimmedTitle,
       content: content.trim() || undefined,
       labels: selectedLabels,
+      dueDate: dueDate || undefined,
+      priority,
     });
   }
 
@@ -116,6 +128,41 @@ export function CardModal({
               className="w-full rounded-2xl border-[2px] border-retro-ink bg-retro-paper px-3 py-2 text-sm text-retro-ink shadow-sm focus:outline-none focus:ring-2 focus:ring-retro-accent dark:border-retro-darkFrame dark:bg-retro-darkPaper dark:text-retro-paper dark:focus:ring-retro-accentSoft"
             />
           </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="mb-1 block text-xs font-semibold uppercase tracking-[0.16em] text-retro-ink/80 dark:text-retro-paper/80">
+                Data de Vencimento
+              </label>
+              <input
+                type="date"
+                value={dueDate}
+                onChange={(e) => setDueDate(e.target.value)}
+                className="w-full rounded-2xl border-[2px] border-retro-ink bg-retro-paper px-3 py-2 text-sm text-retro-ink shadow-sm focus:outline-none focus:ring-2 focus:ring-retro-accent dark:border-retro-darkFrame dark:bg-retro-darkPaper dark:text-retro-paper dark:focus:ring-retro-accentSoft"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-semibold uppercase tracking-[0.16em] text-retro-ink/80 dark:text-retro-paper/80">
+                Prioridade
+              </label>
+              <select
+                value={priority || ""}
+                onChange={(e) =>
+                  setPriority(
+                    (e.target.value as "low" | "medium" | "high" | "") ||
+                      undefined
+                  )
+                }
+                className="w-full rounded-2xl border-[2px] border-retro-ink bg-retro-paper px-3 py-2 text-sm text-retro-ink shadow-sm focus:outline-none focus:ring-2 focus:ring-retro-accent dark:border-retro-darkFrame dark:bg-retro-darkPaper dark:text-retro-paper dark:focus:ring-retro-accentSoft"
+              >
+                <option value="">Nenhuma</option>
+                <option value="low">Baixa</option>
+                <option value="medium">Média</option>
+                <option value="high">Alta</option>
+              </select>
+            </div>
+          </div>
+
           <div>
             <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-retro-ink/80 dark:text-retro-paper/80">
               Etiquetas

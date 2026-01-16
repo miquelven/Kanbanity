@@ -20,6 +20,8 @@ export interface Card {
   title: string;
   content?: string;
   labels: Label[];
+  dueDate?: string; // ISO string
+  priority?: "low" | "medium" | "high";
 }
 
 export interface List {

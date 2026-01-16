@@ -37,6 +37,8 @@ export const initialBoard: Board = {
           title: "Implementar UI básica do board",
           content: "Exibir listas e cards usando os dados iniciais",
           labels: [AVAILABLE_LABELS[1]], // Prioridade Alta
+          priority: "high",
+          dueDate: "2026-01-20", // Futuro
         },
       ],
       labels: [],

@@ -243,7 +243,13 @@ export function Board(props: BoardProps) {
 
   function addCard(
     listId: string,
-    data: { title: string; content?: string; labels: Label[] }
+    data: {
+      title: string;
+      content?: string;
+      labels: Label[];
+      dueDate?: string;
+      priority?: "low" | "medium" | "high";
+    }
   ) {
     const trimmedTitle = data.title.trim();
     if (!trimmedTitle) {
@@ -266,6 +272,8 @@ export function Board(props: BoardProps) {
               title: trimmedTitle,
               content: data.content,
               labels: data.labels,
+              dueDate: data.dueDate,
+              priority: data.priority,
             },
           ],
         };

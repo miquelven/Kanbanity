@@ -30,9 +30,25 @@ export const CardContent = forwardRef<HTMLDivElement, CardContentProps>(
       attributes,
       listeners,
       dragOverlay,
+      dueDate,
+      priority,
     },
     ref
   ) => {
+    const getDueDateStatus = (dateString?: string) => {
+      if (!dateString) return null;
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const due = new Date(dateString);
+      due.setHours(0, 0, 0, 0);
+
+      if (due < today) return "overdue";
+      if (due.getTime() === today.getTime()) return "today";
+      return "future";
+    };
+
+    const dueStatus = getDueDateStatus(dueDate);
+
     return (
       <motion.div
         ref={ref}
@@ -122,7 +138,46 @@ export const CardContent = forwardRef<HTMLDivElement, CardContentProps>(
             {content}
           </p>
         )}
-        <div className="mt-1 flex justify-end">
+        <div className="mt-1 flex items-end justify-between gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            {priority && (
+              <span
+                className={`rounded border-2 px-1.5 py-0.5 text-[10px] font-black uppercase tracking-wider ${
+                  priority === "high"
+                    ? "border-retro-ink bg-retro-red text-retro-paper"
+                    : priority === "medium"
+                    ? "border-retro-ink bg-retro-orange text-retro-ink"
+                    : "border-retro-ink bg-retro-blue text-retro-paper"
+                }`}
+              >
+                {priority === "high"
+                  ? "High"
+                  : priority === "medium"
+                  ? "Med"
+                  : "Low"}
+              </span>
+            )}
+
+            {dueStatus && (
+              <div
+                className="flex items-center gap-1 rounded border-2 border-retro-ink/20 bg-retro-paper/50 px-1.5 py-0.5"
+                title={`Vence em: ${dueDate}`}
+              >
+                {dueStatus === "overdue" && (
+                  <span className="h-2 w-2 rounded-full border border-retro-ink bg-retro-red shadow-[0_1px_0_rgba(0,0,0,0.5)]"></span>
+                )}
+                {dueStatus === "today" && (
+                  <span className="h-2 w-2 rounded-full border border-retro-ink bg-retro-yellow shadow-[0_1px_0_rgba(0,0,0,0.5)]"></span>
+                )}
+                <span className="text-[10px] font-bold text-retro-ink/70 dark:text-retro-paper/70">
+                  {new Date(dueDate!).toLocaleDateString("pt-BR", {
+                    day: "2-digit",
+                    month: "2-digit",
+                  })}
+                </span>
+              </div>
+            )}
+          </div>
           <button
             type="button"
             onPointerDown={(event) => event.stopPropagation()}
@@ -145,6 +200,8 @@ export function Card({
   title,
   content,
   labels,
+  dueDate,
+  priority,
   listId,
   onDelete,
   onOpen,
@@ -161,7 +218,7 @@ export function Card({
     data: {
       type: "Card",
       listId,
-      card: { id, title, content, labels },
+      card: { id, title, content, labels, dueDate, priority },
     },
   });
 
@@ -180,6 +237,8 @@ export function Card({
       title={title}
       content={content}
       labels={labels}
+      dueDate={dueDate}
+      priority={priority}
       onDelete={onDelete}
       onOpen={onOpen}
       style={style}
