@@ -68,6 +68,38 @@ export function Board(props: BoardProps) {
   const [headerAccent, setHeaderAccent] = useState<HeaderAccent>("yellow");
   const [activeDragItem, setActiveDragItem] = useState<DragItem>(null);
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const filteredLists = searchQuery
+    ? board.lists.map((list) => {
+        const query = searchQuery.toLowerCase();
+
+        const filteredCards = list.cards.filter((card) => {
+          if (card.title.toLowerCase().includes(query)) {
+            return true;
+          }
+
+          if (card.content && card.content.toLowerCase().includes(query)) {
+            return true;
+          }
+
+          if (
+            card.labels.some((label) =>
+              label.name.toLowerCase().includes(query)
+            )
+          ) {
+            return true;
+          }
+
+          return false;
+        });
+
+        return {
+          ...list,
+          cards: filteredCards,
+        };
+      })
+    : board.lists;
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
