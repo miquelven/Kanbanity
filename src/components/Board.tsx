@@ -226,9 +226,11 @@ export function Board(props: BoardProps) {
     }
 
     if (activeType === "Card") {
-      const listId = active.data.current?.listId;
-      const list = board.lists.find((l) => l.id === listId);
-      const card = list?.cards.find((c) => c.id === active.id);
+      const cardId = String(active.id);
+      const list = board.lists.find((l) =>
+        l.cards.some((c) => c.id === cardId)
+      );
+      const card = list?.cards.find((c) => c.id === cardId);
       if (card && list) {
         setActiveDragItem({ type: "Card", data: { ...card, listId: list.id } });
       }
@@ -275,37 +277,17 @@ export function Board(props: BoardProps) {
     if (activeType === "Card") {
       const activeCardId = String(active.id);
       const overId = String(over.id);
-      const sourceListId = active.data.current?.listId as string;
-
-      let destinationListId: string;
-
-      if (overType === "Card") {
-        destinationListId = over.data.current?.listId as string;
-      } else if (overType === "List") {
-        destinationListId = String(over.id);
-      } else {
-        destinationListId = sourceListId;
-      }
-
-      if (sourceListId === destinationListId && active.id === over.id) {
-        return;
-      }
 
       setBoard((currentBoard) => {
-        const sourceListIndex = currentBoard.lists.findIndex(
-          (list) => list.id === sourceListId
-        );
-        const destinationListIndex = currentBoard.lists.findIndex(
-          (list) => list.id === destinationListId
+        const sourceListIndex = currentBoard.lists.findIndex((list) =>
+          list.cards.some((card) => card.id === activeCardId)
         );
 
-        if (sourceListIndex === -1 || destinationListIndex === -1) {
+        if (sourceListIndex === -1) {
           return currentBoard;
         }
 
         const sourceList = currentBoard.lists[sourceListIndex];
-        const destinationList = currentBoard.lists[destinationListIndex];
-
         const sourceCards = [...sourceList.cards];
         const activeCardIndex = sourceCards.findIndex(
           (card) => card.id === activeCardId
@@ -315,15 +297,34 @@ export function Board(props: BoardProps) {
           return currentBoard;
         }
 
-        if (sourceListId === destinationListId) {
-          const destinationCards = [...sourceCards];
+        let destinationListIndex = sourceListIndex;
 
+        if (overType === "Card") {
+          const listIndexForOverCard = currentBoard.lists.findIndex((list) =>
+            list.cards.some((card) => card.id === overId)
+          );
+          if (listIndexForOverCard !== -1) {
+            destinationListIndex = listIndexForOverCard;
+          }
+        } else if (overType === "List") {
+          const listIndexForOverList = currentBoard.lists.findIndex(
+            (list) => list.id === overId
+          );
+          if (listIndexForOverList !== -1) {
+            destinationListIndex = listIndexForOverList;
+          }
+        }
+
+        const destinationList = currentBoard.lists[destinationListIndex];
+        const destinationCards = [...destinationList.cards];
+
+        if (sourceListIndex === destinationListIndex) {
           const overCardIndex =
             overType === "Card"
               ? destinationCards.findIndex((card) => card.id === overId)
               : destinationCards.length - 1;
 
-          if (overCardIndex === -1) {
+          if (overCardIndex === -1 || overCardIndex === activeCardIndex) {
             return currentBoard;
           }
 
@@ -345,7 +346,6 @@ export function Board(props: BoardProps) {
           };
         }
 
-        const destinationCards = [...destinationList.cards];
         const [movedCard] = sourceCards.splice(activeCardIndex, 1);
 
         let destinationIndex: number;

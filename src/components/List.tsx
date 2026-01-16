@@ -82,13 +82,15 @@ export const ListContent = forwardRef<HTMLDivElement, ListContentProps>(
         "border-2 border-retro-ink bg-retro-yellow text-retro-ink hover:bg-retro-yellow/80",
     };
 
+    const panelToneClasses = dragOverlay
+      ? "border-retro-ink bg-retro-paper/90"
+      : tonePanelClasses[tone];
+
     return (
       <div
         ref={ref}
         style={style}
-        className={`flex w-72 flex-col gap-2 rounded-3xl border-[4px] shadow-retroCard transition-all ${
-          tonePanelClasses[tone]
-        } ${
+        className={`flex w-72 flex-col gap-2 rounded-3xl border-[4px] shadow-retroCard transition-all ${panelToneClasses} ${
           dragOverlay
             ? "rotate-2 scale-105 cursor-grabbing shadow-retroPanel"
             : "cursor-grab active:cursor-grabbing"
