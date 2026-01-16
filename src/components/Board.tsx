@@ -40,11 +40,19 @@ const dropAnimation: DropAnimation = {
 };
 
 export function Board() {
-  const { board, addList, updateList, deleteList, deleteCard, addLabel } =
-    useBoard();
-  
+  const {
+    board,
+    addList,
+    updateList,
+    deleteList,
+    deleteCard,
+    addLabel,
+    addCard,
+    updateCard,
+  } = useBoard();
+
   const { activeDragItem, handleDragStart, handleDragEnd } = useBoardDragDrop();
-  
+
   const {
     searchQuery,
     setSearchQuery,
@@ -348,7 +356,7 @@ export function Board() {
                     autoFocus
                   />
                 </div>
-                
+
                 {!editingListId && (
                   <div>
                     <label className="mb-1 block text-sm font-bold uppercase tracking-wider text-retro-ink/70">
@@ -357,7 +365,9 @@ export function Board() {
                     <input
                       type="text"
                       value={listModalFirstCardTitle}
-                      onChange={(e) => setListModalFirstCardTitle(e.target.value)}
+                      onChange={(e) =>
+                        setListModalFirstCardTitle(e.target.value)
+                      }
                       className="w-full rounded border-2 border-retro-ink bg-retro-paper px-3 py-2 font-retroBody font-bold text-retro-ink shadow-[2px_2px_0_rgba(0,0,0,1)] focus:outline-none focus:shadow-none focus:translate-x-[2px] focus:translate-y-[2px] transition-all"
                       placeholder="Ex: Pesquisar referências"
                     />
@@ -459,20 +469,25 @@ export function Board() {
 
       {selectedCardData && (
         <CardModal
-          listId={selectedCardData.listId}
           card={selectedCardData.card}
           availableLabels={availableLabels}
           onClose={() => setSelectedCard(null)}
-          onAddLabel={addLabel}
+          onCreateLabel={addLabel}
+          onSave={(data) =>
+            updateCard(selectedCardData.listId, selectedCardData.card.id, data)
+          }
         />
       )}
 
       {newCardListId && (
         <CardModal
-          listId={newCardListId}
           availableLabels={availableLabels}
           onClose={() => setNewCardListId(null)}
-          onAddLabel={addLabel}
+          onCreateLabel={addLabel}
+          onSave={(data) => {
+            addCard(newCardListId, data);
+            setNewCardListId(null);
+          }}
         />
       )}
     </div>

@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import type { Card, Label } from "../types/kanban";
 
 type CardModalProps = {
-  card: Card;
+  card?: Card;
   availableLabels: Label[];
   onCreateLabel: (label: { name: string; color: string }) => void;
   onClose: () => void;
@@ -35,14 +35,14 @@ export function CardModal({
   onClose,
   onSave,
 }: CardModalProps) {
-  const [title, setTitle] = useState(card.title);
-  const [content, setContent] = useState(card.content ?? "");
-  const [dueDate, setDueDate] = useState(card.dueDate ?? "");
+  const [title, setTitle] = useState(card?.title ?? "");
+  const [content, setContent] = useState(card?.content ?? "");
+  const [dueDate, setDueDate] = useState(card?.dueDate ?? "");
   const [priority, setPriority] = useState<
     "low" | "medium" | "high" | undefined
-  >(card.priority);
+  >(card?.priority);
   const [selectedLabels, setSelectedLabels] = useState<Label[]>(
-    card.labels || []
+    card?.labels || []
   );
   const [isCreatingLabel, setIsCreatingLabel] = useState(false);
   const [newLabelName, setNewLabelName] = useState("");
@@ -114,6 +114,7 @@ export function CardModal({
             <input
               value={title}
               onChange={(event) => setTitle(event.target.value)}
+              placeholder="Ex: Comprar leite"
               className="w-full rounded-2xl border-[2px] border-retro-ink bg-retro-paper px-3 py-2 text-sm text-retro-ink shadow-sm focus:outline-none focus:ring-2 focus:ring-retro-accent dark:border-retro-darkFrame dark:bg-retro-darkPaper dark:text-retro-paper dark:focus:ring-retro-accentSoft"
             />
           </div>
@@ -125,6 +126,7 @@ export function CardModal({
               value={content}
               onChange={(event) => setContent(event.target.value)}
               rows={4}
+              placeholder="Ex: Detalhes da tarefa..."
               className="w-full rounded-2xl border-[2px] border-retro-ink bg-retro-paper px-3 py-2 text-sm text-retro-ink shadow-sm focus:outline-none focus:ring-2 focus:ring-retro-accent dark:border-retro-darkFrame dark:bg-retro-darkPaper dark:text-retro-paper dark:focus:ring-retro-accentSoft"
             />
           </div>
