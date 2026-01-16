@@ -289,7 +289,7 @@ export function Board() {
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
       >
-        <div className="flex gap-4 overflow-x-auto pb-4">
+        <div className="flex gap-4 overflow-x-auto p-4">
           <SortableContext
             items={filteredLists.map((list) => list.id)}
             strategy={horizontalListSortingStrategy}
