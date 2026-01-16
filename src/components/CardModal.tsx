@@ -1,20 +1,49 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import type { Card, Label } from "../types/kanban";
-import { AVAILABLE_LABELS } from "../data/labels";
 
 type CardModalProps = {
   card: Card;
+  availableLabels: Label[];
+  onCreateLabel: (label: { name: string; color: string }) => void;
   onClose: () => void;
   onSave: (data: { title: string; content?: string; labels: Label[] }) => void;
 };
 
-export function CardModal({ card, onClose, onSave }: CardModalProps) {
+const LABEL_COLORS = [
+  "bg-retro-red",
+  "bg-retro-blue",
+  "bg-retro-green",
+  "bg-retro-yellow",
+  "bg-retro-purple",
+  "bg-retro-orange",
+  "bg-retro-pink",
+  "bg-retro-teal",
+  "bg-retro-ink",
+];
+
+export function CardModal({
+  card,
+  availableLabels,
+  onCreateLabel,
+  onClose,
+  onSave,
+}: CardModalProps) {
   const [title, setTitle] = useState(card.title);
   const [content, setContent] = useState(card.content ?? "");
   const [selectedLabels, setSelectedLabels] = useState<Label[]>(
     card.labels || []
   );
+  const [isCreatingLabel, setIsCreatingLabel] = useState(false);
+  const [newLabelName, setNewLabelName] = useState("");
+  const [newLabelColor, setNewLabelColor] = useState(LABEL_COLORS[0]);
+
+  function handleCreateLabel() {
+    if (!newLabelName.trim()) return;
+    onCreateLabel({ name: newLabelName, color: newLabelColor });
+    setNewLabelName("");
+    setIsCreatingLabel(false);
+  }
 
   function handleSave() {
     const trimmedTitle = title.trim();

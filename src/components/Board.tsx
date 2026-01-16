@@ -67,29 +67,14 @@ export function Board(props: BoardProps) {
   const [listModalFirstCardTitle, setListModalFirstCardTitle] = useState("");
   const [listModalTone, setListModalTone] = useState<ListTone>("blue");
   const [listModalLabels, setListModalLabels] = useState<Label[]>([]);
-  const [isCreatingLabel, setIsCreatingLabel] = useState(false);
   const [headerAccent, setHeaderAccent] = useState<HeaderAccent>("yellow");
   const [activeDragItem, setActiveDragItem] = useState<DragItem>(null);
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget>(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const [filterChecklistIncomplete, setFilterChecklistIncomplete] =
-    useState(false);
   const [filterLabelId, setFilterLabelId] = useState<string | "all">("all");
   const [filterListId, setFilterListId] = useState<string | "all">("all");
 
-  function cardHasIncompleteChecklist(content?: string) {
-    if (!content) {
-      return false;
-    }
-
-    const normalized = content.toLowerCase();
-
-    if (!normalized.includes("[ ]")) {
-      return false;
-    }
-
-    return true;
-  }
+  const availableLabels = board.availableLabels ?? [];
 
   function cardMatchesFilters(card: CardType) {
     const query = searchQuery.trim().toLowerCase();
@@ -108,13 +93,6 @@ export function Board(props: BoardProps) {
     }
 
     if (
-      filterChecklistIncomplete &&
-      !cardHasIncompleteChecklist(card.content)
-    ) {
-      return false;
-    }
-
-    if (
       filterLabelId !== "all" &&
       !card.labels.some((label) => label.id === filterLabelId)
     ) {
@@ -125,10 +103,7 @@ export function Board(props: BoardProps) {
   }
 
   const hasActiveFilters =
-    !!searchQuery ||
-    filterChecklistIncomplete ||
-    filterLabelId !== "all" ||
-    filterListId !== "all";
+    !!searchQuery || filterLabelId !== "all" || filterListId !== "all";
 
   const filteredLists = hasActiveFilters
     ? board.lists
@@ -350,10 +325,16 @@ export function Board(props: BoardProps) {
       name: label.name,
       color: label.color,
     };
-    setBoard((currentBoard) => ({
-      ...currentBoard,
-      availableLabels: [...currentBoard.availableLabels, newLabel],
-    }));
+    setBoard((currentBoard) => {
+      const existingLabels = Array.isArray(currentBoard.availableLabels)
+        ? currentBoard.availableLabels
+        : [];
+
+      return {
+        ...currentBoard,
+        availableLabels: [...existingLabels, newLabel],
+      };
+    });
   }
 
   function handleDragStart(event: DragStartEvent) {
@@ -609,19 +590,6 @@ export function Board(props: BoardProps) {
       </motion.header>
       <section className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-wrap items-center gap-2">
-          <button
-            type="button"
-            onClick={() =>
-              setFilterChecklistIncomplete((previous) => !previous)
-            }
-            className={`inline-flex items-center gap-2 rounded-full border-2 px-4 py-2 text-xs font-black uppercase tracking-[0.18em] shadow-[0_3px_0_rgba(0,0,0,0.7)] transition-all cursor-pointer ${
-              filterChecklistIncomplete
-                ? "border-retro-ink bg-retro-yellow text-retro-ink"
-                : "border-retro-ink/40 bg-retro-paper text-retro-ink/80 hover:border-retro-ink/70"
-            }`}
-          >
-            <span>Checklist incompleto</span>
-          </button>
           <select
             value={filterLabelId}
             onChange={(event) =>
@@ -634,7 +602,7 @@ export function Board(props: BoardProps) {
             className="rounded-full border-2 border-retro-ink/50 bg-retro-paper px-3 py-2 text-xs font-retroBody text-retro-ink shadow-[0_3px_0_rgba(0,0,0,0.6)] focus:outline-none focus:ring-2 focus:ring-retro-accent"
           >
             <option value="all">Todas as labels</option>
-            {board.availableLabels.map((label) => (
+            {availableLabels.map((label) => (
               <option key={label.id} value={label.id}>
                 {label.name}
               </option>
@@ -689,6 +657,7 @@ export function Board(props: BoardProps) {
                 onStartAddCard={(listId) => setNewCardListId(listId)}
                 onDeleteCard={requestDeleteCard}
                 onDeleteList={requestDeleteList}
+                onEditList={handleOpenEditList}
                 onOpenCard={(listId, cardId) =>
                   setSelectedCard({ listId, cardId })
                 }
@@ -708,6 +677,7 @@ export function Board(props: BoardProps) {
                   onStartAddCard={() => {}}
                   onDeleteCard={() => {}}
                   onDeleteList={() => {}}
+                  onEditList={() => {}}
                   onOpenCard={() => {}}
                   dragOverlay
                 />
@@ -721,6 +691,8 @@ export function Board(props: BoardProps) {
         {selectedCardData && (
           <CardModal
             card={selectedCardData.card}
+            availableLabels={availableLabels}
+            onCreateLabel={(label) => addLabel(label)}
             onClose={() => setSelectedCard(null)}
             onSave={(data) => {
               updateCard(
@@ -739,6 +711,8 @@ export function Board(props: BoardProps) {
               title: "",
               labels: [],
             }}
+            availableLabels={availableLabels}
+            onCreateLabel={(label) => addLabel(label)}
             onClose={() => setNewCardListId(null)}
             onSave={(data) => {
               addCard(newCardListId, data);
@@ -824,83 +798,10 @@ export function Board(props: BoardProps) {
                         </button>
                       </span>
                     ))}
-                    <button
-                      type="button"
-                      onClick={() => setIsCreatingLabel(!isCreatingLabel)}
-                      className="rounded-full border-2 border-dashed border-retro-ink/40 px-2 py-1 text-xs font-bold uppercase tracking-wider text-retro-ink/60 hover:border-retro-ink hover:text-retro-ink transition-colors cursor-pointer"
-                    >
-                      + Nova Tag
-                    </button>
                   </div>
 
-                  {isCreatingLabel && (
-                    <div className="mb-4 rounded-xl border-2 border-retro-ink/20 bg-retro-paper/50 p-3">
-                      <form
-                        onSubmit={(e) => {
-                          e.preventDefault();
-                          const formData = new FormData(e.currentTarget);
-                          const name = formData.get("name") as string;
-                          const color = formData.get("color") as string;
-                          if (name && color) {
-                            addLabel({ name, color });
-                            setIsCreatingLabel(false);
-                          }
-                        }}
-                        className="flex flex-col gap-2"
-                      >
-                        <input
-                          name="name"
-                          placeholder="Nome da tag"
-                          autoFocus
-                          className="w-full rounded-lg border-2 border-retro-ink/20 bg-retro-paper px-2 py-1 text-sm focus:border-retro-accent focus:outline-none"
-                        />
-                        <div className="flex gap-2 overflow-x-auto pb-2">
-                          {[
-                            "bg-retro-red",
-                            "bg-retro-blue",
-                            "bg-retro-green",
-                            "bg-retro-yellow",
-                            "bg-retro-purple",
-                            "bg-retro-orange",
-                            "bg-retro-pink",
-                            "bg-retro-teal",
-                            "bg-retro-ink",
-                          ].map((color) => (
-                            <label key={color} className="cursor-pointer">
-                              <input
-                                type="radio"
-                                name="color"
-                                value={color}
-                                className="peer sr-only"
-                                defaultChecked={color === "bg-retro-blue"}
-                              />
-                              <div
-                                className={`h-6 w-6 rounded-full ${color} border-2 border-transparent peer-checked:border-retro-ink peer-checked:scale-110 transition-all shadow-sm`}
-                              />
-                            </label>
-                          ))}
-                        </div>
-                        <div className="flex justify-end gap-2">
-                          <button
-                            type="button"
-                            onClick={() => setIsCreatingLabel(false)}
-                            className="text-xs font-bold uppercase text-retro-ink/60 hover:text-retro-ink"
-                          >
-                            Cancelar
-                          </button>
-                          <button
-                            type="submit"
-                            className="rounded-full bg-retro-ink px-3 py-1 text-xs font-bold uppercase text-retro-paper hover:bg-retro-ink/80"
-                          >
-                            Criar
-                          </button>
-                        </div>
-                      </form>
-                    </div>
-                  )}
-
                   <div className="flex flex-wrap gap-2">
-                    {board.availableLabels
+                    {availableLabels
                       .filter(
                         (label) =>
                           !listModalLabels.some((l) => l.id === label.id)

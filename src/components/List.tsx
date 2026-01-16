@@ -30,10 +30,12 @@ export const ListContent = forwardRef<HTMLDivElement, ListContentProps>(
       id,
       title,
       cards,
+      labels,
       tone,
       onStartAddCard,
       onDeleteCard,
       onDeleteList,
+      onEditList,
       onOpenCard,
       style,
       attributes,
@@ -102,25 +104,67 @@ export const ListContent = forwardRef<HTMLDivElement, ListContentProps>(
           {...listeners}
           className={`flex cursor-grab items-center justify-between rounded-t-3xl px-3 py-3 active:cursor-grabbing shadow-[0_4px_0_rgba(0,0,0,0.4)] ${toneHeaderClasses[tone]}`}
         >
-          <h3 className="text-sm font-black uppercase tracking-[0.18em]">
-            {title}
-          </h3>
-          <button
-            type="button"
-            onPointerDown={(e) => e.stopPropagation()}
-            onClick={() => onDeleteList(id)}
-            className="flex h-6 w-6 items-center justify-center rounded-full bg-white/20 text-retro-ink transition-all hover:-translate-y-[1px] hover:bg-white/40 active:translate-y-[1px] cursor-pointer"
-            aria-label="Deletar lista"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-              className="h-4 w-4"
+          <div className="flex items-center gap-2">
+            <h3 className="text-sm font-black uppercase tracking-[0.18em]">
+              {title}
+            </h3>
+            {labels && labels.length > 0 && (
+              <div className="flex flex-wrap gap-1">
+                {labels.map((label) => {
+                  const isDarkColor =
+                    label.color.includes("ink") || label.color.includes("red");
+                  return (
+                    <span
+                      key={label.id}
+                      className={`rounded-full border px-1.5 py-0.5 text-[9px] font-black uppercase tracking-[0.16em] ${
+                        label.color
+                      } ${
+                        isDarkColor
+                          ? "text-retro-paper border-retro-paper/60"
+                          : "text-retro-ink border-retro-ink/30"
+                      }`}
+                    >
+                      {label.name}
+                    </span>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+          <div className="flex items-center gap-1">
+            <button
+              type="button"
+              onPointerDown={(e) => e.stopPropagation()}
+              onClick={() => onEditList(id)}
+              className="flex h-6 w-6 items-center justify-center rounded-full bg-white/20 text-retro-ink transition-all hover:-translate-y-[1px] hover:bg-white/40 active:translate-y-[1px] cursor-pointer"
+              aria-label="Editar lista"
             >
-              <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" />
-            </svg>
-          </button>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+                className="h-4 w-4"
+              >
+                <path d="M4 13.5V16h2.5l7.06-7.06-2.5-2.5L4 13.5zm9.85-7.35a.5.5 0 000-.71l-1.29-1.29a.5.5 0 00-.71 0L10.96 4.94l2.5 2.5 1.39-1.29z" />
+              </svg>
+            </button>
+            <button
+              type="button"
+              onPointerDown={(e) => e.stopPropagation()}
+              onClick={() => onDeleteList(id)}
+              className="flex h-6 w-6 items-center justify-center rounded-full bg-white/20 text-retro-ink transition-all hover:-translate-y-[1px] hover:bg-white/40 active:translate-y-[1px] cursor-pointer"
+              aria-label="Deletar lista"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+                className="h-4 w-4"
+              >
+                <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" />
+              </svg>
+            </button>
+          </div>
         </div>
 
         <div className="flex flex-col gap-2 p-2">
@@ -212,10 +256,12 @@ export function List({
       id={id}
       title={title}
       cards={cards}
+      labels={labels}
       tone={tone}
       onStartAddCard={onStartAddCard}
       onDeleteCard={onDeleteCard}
       onDeleteList={onDeleteList}
+      onEditList={onEditList}
       onOpenCard={onOpenCard}
       style={style}
       attributes={attributes}
