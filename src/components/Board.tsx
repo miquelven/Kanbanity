@@ -177,10 +177,22 @@ export function Board() {
     blue: "bg-retro-blue",
   };
 
+  const toneBackgroundClasses: Record<ListTone, string> = {
+    accent: "bg-retro-accent",
+    blue: "bg-retro-blue",
+    purple: "bg-retro-purple",
+    pink: "bg-retro-pink",
+    red: "bg-retro-red",
+    orange: "bg-retro-orange",
+    yellow: "bg-retro-yellow",
+    green: "bg-retro-green",
+    teal: "bg-retro-teal",
+  };
+
   return (
     <div className="px-2 pb-4 pt-2 sm:px-4 sm:pb-6 sm:pt-3">
       <motion.header
-        className={`mb-6 flex items-center justify-between rounded-3xl border-[4px] border-retro-ink px-6 py-4 shadow-retroPanel ${headerAccentClasses[headerAccent]}`}
+        className={`mb-6 flex items-center justify-between rounded-3xl border-2 border-retro-ink px-6 py-4 shadow-retroPanel ${headerAccentClasses[headerAccent]}`}
         layout
         transition={{ type: "spring", stiffness: 260, damping: 20 }}
       >
@@ -393,13 +405,12 @@ export function Board() {
                         type="button"
                         onClick={() => setListModalTone(tone)}
                         className={`h-8 w-8 rounded-full border-2 border-retro-ink shadow-[1px_1px_0_rgba(0,0,0,1)] transition-transform hover:-translate-y-0.5 ${
+                          toneBackgroundClasses[tone]
+                        } ${
                           listModalTone === tone
                             ? "ring-2 ring-retro-ink ring-offset-2"
                             : ""
                         }`}
-                        style={{
-                          backgroundColor: `var(--retro-${tone})`,
-                        }}
                       />
                     ))}
                   </div>

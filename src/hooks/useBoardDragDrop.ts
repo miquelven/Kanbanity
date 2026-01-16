@@ -47,13 +47,16 @@ export function useBoardDragDrop() {
     const activeType = active.data.current?.type;
     const overType = over.data.current?.type;
 
-    if (activeType === "List" && overType === "List") {
-      if (active.id === over.id) {
+    if (activeType === "List" && (overType === "List" || overType === "Card")) {
+      const overListId =
+        overType === "List" ? over.id : over.data.current?.listId;
+
+      if (active.id === overListId) {
         return;
       }
 
       const oldIndex = board.lists.findIndex((list) => list.id === active.id);
-      const newIndex = board.lists.findIndex((list) => list.id === over.id);
+      const newIndex = board.lists.findIndex((list) => list.id === overListId);
 
       if (oldIndex !== -1 && newIndex !== -1) {
         reorderLists(oldIndex, newIndex);
