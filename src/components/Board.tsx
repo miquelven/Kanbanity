@@ -47,6 +47,8 @@ type DragItem =
   | { type: "Card"; data: CardType & { listId: string } }
   | null;
 
+type HeaderAccent = "yellow" | "red" | "green" | "blue";
+
 const dropAnimation: DropAnimation = {
   sideEffects: defaultDropAnimationSideEffects({}),
 };
@@ -63,6 +65,7 @@ export function Board(props: BoardProps) {
   const [isNewListModalOpen, setIsNewListModalOpen] = useState(false);
   const [newListFirstCardTitle, setNewListFirstCardTitle] = useState("");
   const [newListTone, setNewListTone] = useState<ListTone>("blue");
+  const [headerAccent, setHeaderAccent] = useState<HeaderAccent>("yellow");
   const [activeDragItem, setActiveDragItem] = useState<DragItem>(null);
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget>(null);
 
@@ -407,18 +410,63 @@ export function Board(props: BoardProps) {
     "teal",
   ];
 
+  const headerAccentClasses: Record<HeaderAccent, string> = {
+    yellow: "bg-retro-yellow",
+    red: "bg-retro-red",
+    green: "bg-retro-green",
+    blue: "bg-retro-blue",
+  };
+
   return (
     <div className="px-2 pb-4 pt-2 sm:px-4 sm:pb-6 sm:pt-3">
-      <header className="mb-6 flex items-center justify-between rounded-3xl border-[4px] border-retro-ink bg-retro-yellow px-6 py-4 shadow-retroPanel">
+      <motion.header
+        className={`mb-6 flex items-center justify-between rounded-3xl border-[4px] border-retro-ink px-6 py-4 shadow-retroPanel ${headerAccentClasses[headerAccent]}`}
+        layout
+        transition={{ type: "spring", stiffness: 260, damping: 20 }}
+      >
         <h1 className="font-retroHeading text-4xl font-black uppercase tracking-[0.24em] text-retro-ink drop-shadow-sm dark:text-retro-ink">
           {board.title}
         </h1>
-        <div className="flex gap-2">
-          <div className="h-5 w-5 rounded-full bg-retro-red border-[3px] border-retro-ink shadow-retroCard"></div>
-          <div className="h-5 w-5 rounded-full bg-retro-green border-[3px] border-retro-ink shadow-retroCard"></div>
-          <div className="h-5 w-5 rounded-full bg-retro-blue border-[3px] border-retro-ink shadow-retroCard"></div>
+        <div className="flex items-center gap-4">
+          <input
+            type="text"
+            placeholder="Buscar cards..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-48 px-3 py-1 rounded-xl border-2 border-retro-ink bg-retro-paper text-sm font-retroBody text-retro-ink placeholder:text-retro-ink/50 shadow-[2px_2px_0_rgba(0,0,0,1)] focus:outline-none focus:translate-y-[2px] focus:shadow-none transition-all"
+          />
+          <div className="flex gap-2">
+            {(["red", "green", "blue"] as HeaderAccent[]).map((accent) => {
+              const dotColor =
+                accent === "red"
+                  ? "bg-retro-red"
+                  : accent === "green"
+                  ? "bg-retro-green"
+                  : "bg-retro-blue";
+
+              const isActive = headerAccent === accent;
+
+              return (
+                <button
+                  key={accent}
+                  type="button"
+                  onClick={() => setHeaderAccent(accent)}
+                  aria-label={`Mudar cor do cabeçalho para ${accent}`}
+                  className={`relative flex h-6 w-6 items-center justify-center rounded-full border-[3px] border-retro-ink shadow-[0_4px_0_rgba(0,0,0,0.7)] transition-all cursor-pointer ${
+                    isActive
+                      ? "scale-110 shadow-[0_0_0_4px_rgba(0,0,0,0.9)]"
+                      : "opacity-80 hover:-translate-y-[1px] hover:opacity-100"
+                  }`}
+                >
+                  <span
+                    className={`h-3.5 w-3.5 rounded-full ${dotColor} shadow-[0_0_0_2px_rgba(0,0,0,0.5)]`}
+                  />
+                </button>
+              );
+            })}
+          </div>
         </div>
-      </header>
+      </motion.header>
       <section className="mb-5 flex justify-end">
         <button
           type="button"
@@ -437,10 +485,10 @@ export function Board(props: BoardProps) {
       >
         <div className="flex gap-4 overflow-x-auto pb-4">
           <SortableContext
-            items={board.lists.map((list) => list.id)}
+            items={filteredLists.map((list) => list.id)}
             strategy={horizontalListSortingStrategy}
           >
-            {board.lists.map((list, index) => (
+            {filteredLists.map((list, index) => (
               <List
                 key={list.id}
                 {...list}
