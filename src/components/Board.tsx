@@ -61,44 +61,83 @@ export function Board(props: BoardProps) {
 
   const [selectedCard, setSelectedCard] = useState<SelectedCard>(null);
   const [newCardListId, setNewCardListId] = useState<string | null>(null);
-  const [newListTitle, setNewListTitle] = useState("");
-  const [isNewListModalOpen, setIsNewListModalOpen] = useState(false);
-  const [newListFirstCardTitle, setNewListFirstCardTitle] = useState("");
-  const [newListTone, setNewListTone] = useState<ListTone>("blue");
+  const [editingListId, setEditingListId] = useState<string | null>(null);
+  const [listModalTitle, setListModalTitle] = useState("");
+  const [isListModalOpen, setIsListModalOpen] = useState(false);
+  const [listModalFirstCardTitle, setListModalFirstCardTitle] = useState("");
+  const [listModalTone, setListModalTone] = useState<ListTone>("blue");
+  const [listModalLabels, setListModalLabels] = useState<Label[]>([]);
+  const [isCreatingLabel, setIsCreatingLabel] = useState(false);
   const [headerAccent, setHeaderAccent] = useState<HeaderAccent>("yellow");
   const [activeDragItem, setActiveDragItem] = useState<DragItem>(null);
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [filterChecklistIncomplete, setFilterChecklistIncomplete] =
+    useState(false);
+  const [filterLabelId, setFilterLabelId] = useState<string | "all">("all");
+  const [filterListId, setFilterListId] = useState<string | "all">("all");
 
-  const filteredLists = searchQuery
-    ? board.lists.map((list) => {
-        const query = searchQuery.toLowerCase();
+  function cardHasIncompleteChecklist(content?: string) {
+    if (!content) {
+      return false;
+    }
 
-        const filteredCards = list.cards.filter((card) => {
-          if (card.title.toLowerCase().includes(query)) {
-            return true;
-          }
+    const normalized = content.toLowerCase();
 
-          if (card.content && card.content.toLowerCase().includes(query)) {
-            return true;
-          }
+    if (!normalized.includes("[ ]")) {
+      return false;
+    }
 
-          if (
-            card.labels.some((label) =>
-              label.name.toLowerCase().includes(query)
-            )
-          ) {
-            return true;
-          }
+    return true;
+  }
 
-          return false;
-        });
+  function cardMatchesFilters(card: CardType) {
+    const query = searchQuery.trim().toLowerCase();
 
-        return {
+    if (query) {
+      const matchesTitle = card.title.toLowerCase().includes(query);
+      const matchesContent =
+        card.content && card.content.toLowerCase().includes(query);
+      const matchesLabelText = card.labels.some((label) =>
+        label.name.toLowerCase().includes(query)
+      );
+
+      if (!matchesTitle && !matchesContent && !matchesLabelText) {
+        return false;
+      }
+    }
+
+    if (
+      filterChecklistIncomplete &&
+      !cardHasIncompleteChecklist(card.content)
+    ) {
+      return false;
+    }
+
+    if (
+      filterLabelId !== "all" &&
+      !card.labels.some((label) => label.id === filterLabelId)
+    ) {
+      return false;
+    }
+
+    return true;
+  }
+
+  const hasActiveFilters =
+    !!searchQuery ||
+    filterChecklistIncomplete ||
+    filterLabelId !== "all" ||
+    filterListId !== "all";
+
+  const filteredLists = hasActiveFilters
+    ? board.lists
+        .filter((list) => filterListId === "all" || list.id === filterListId)
+        .map((list) => ({
           ...list,
-          cards: filteredCards,
-        };
-      })
+          cards: list.cards.filter((card) => cardMatchesFilters(card)),
+        }))
+        .filter((list) => list.cards.length > 0)
     : board.lists;
 
   const sensors = useSensors(
@@ -113,7 +152,12 @@ export function Board(props: BoardProps) {
     return `${prefix}-${Math.random().toString(36).slice(2, 9)}`;
   }
 
-  function addList(title: string, firstCardTitle?: string, tone?: ListTone) {
+  function addList(
+    title: string,
+    firstCardTitle?: string,
+    tone?: ListTone,
+    labels?: Label[]
+  ) {
     const trimmedTitle = title.trim();
     if (!trimmedTitle) {
       return;
@@ -144,23 +188,75 @@ export function Board(props: BoardProps) {
             title: trimmedTitle,
             tone: tone ?? "blue",
             cards: newCards,
+            labels: labels ?? [],
           },
         ],
       };
     });
   }
 
-  function handleCreateList() {
-    const trimmedTitle = newListTitle.trim();
+  function updateList(
+    listId: string,
+    data: { title: string; tone: ListTone; labels: Label[] }
+  ) {
+    setBoard((currentBoard) => ({
+      ...currentBoard,
+      lists: currentBoard.lists.map((list) =>
+        list.id === listId
+          ? { ...list, title: data.title, tone: data.tone, labels: data.labels }
+          : list
+      ),
+    }));
+  }
+
+  function handleSaveListModal() {
+    const trimmedTitle = listModalTitle.trim();
     if (!trimmedTitle) {
       return;
     }
 
-    addList(newListTitle, newListFirstCardTitle, newListTone);
-    setNewListTitle("");
-    setNewListFirstCardTitle("");
-    setNewListTone("blue");
-    setIsNewListModalOpen(false);
+    if (editingListId) {
+      updateList(editingListId, {
+        title: trimmedTitle,
+        tone: listModalTone,
+        labels: listModalLabels,
+      });
+    } else {
+      addList(
+        trimmedTitle,
+        listModalFirstCardTitle,
+        listModalTone,
+        listModalLabels
+      );
+    }
+
+    setListModalTitle("");
+    setListModalFirstCardTitle("");
+    setListModalTone("blue");
+    setListModalLabels([]);
+    setEditingListId(null);
+    setIsListModalOpen(false);
+  }
+
+  function handleOpenCreateList() {
+    setEditingListId(null);
+    setListModalTitle("");
+    setListModalFirstCardTitle("");
+    setListModalTone("blue");
+    setListModalLabels([]);
+    setIsListModalOpen(true);
+  }
+
+  function handleOpenEditList(listId: string) {
+    const list = board.lists.find((l) => l.id === listId);
+    if (!list) return;
+
+    setEditingListId(listId);
+    setListModalTitle(list.title);
+    setListModalFirstCardTitle(""); // No need to show this when editing
+    setListModalTone(list.tone || "blue");
+    setListModalLabels(list.labels || []);
+    setIsListModalOpen(true);
   }
 
   function deleteList(listId: string) {
@@ -245,6 +341,18 @@ export function Board(props: BoardProps) {
           ),
         };
       }),
+    }));
+  }
+
+  function addLabel(label: { name: string; color: string }) {
+    const newLabel: Label = {
+      id: createId("label"),
+      name: label.name,
+      color: label.color,
+    };
+    setBoard((currentBoard) => ({
+      ...currentBoard,
+      availableLabels: [...currentBoard.availableLabels, newLabel],
     }));
   }
 
@@ -499,15 +607,68 @@ export function Board(props: BoardProps) {
           </div>
         </div>
       </motion.header>
-      <section className="mb-5 flex justify-end">
-        <button
-          type="button"
-          onClick={() => setIsNewListModalOpen(true)}
-          className="inline-flex items-center gap-2 rounded-full border-2 border-retro-ink bg-retro-accent px-6 py-3 text-sm font-black uppercase tracking-[0.22em] text-retro-ink shadow-[0_3px_0_rgba(0,0,0,0.8)] transition-all hover:-translate-y-[1px] hover:bg-retro-accentSoft hover:shadow-[0_1px_0_rgba(0,0,0,0.8)] active:translate-y-[1px] active:shadow-none cursor-pointer"
-        >
-          <span className="text-base leading-none">+</span>
-          <span>Nova lista</span>
-        </button>
+      <section className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={() =>
+              setFilterChecklistIncomplete((previous) => !previous)
+            }
+            className={`inline-flex items-center gap-2 rounded-full border-2 px-4 py-2 text-xs font-black uppercase tracking-[0.18em] shadow-[0_3px_0_rgba(0,0,0,0.7)] transition-all cursor-pointer ${
+              filterChecklistIncomplete
+                ? "border-retro-ink bg-retro-yellow text-retro-ink"
+                : "border-retro-ink/40 bg-retro-paper text-retro-ink/80 hover:border-retro-ink/70"
+            }`}
+          >
+            <span>Checklist incompleto</span>
+          </button>
+          <select
+            value={filterLabelId}
+            onChange={(event) =>
+              setFilterLabelId(
+                event.target.value
+                  ? (event.target.value as string | "all")
+                  : "all"
+              )
+            }
+            className="rounded-full border-2 border-retro-ink/50 bg-retro-paper px-3 py-2 text-xs font-retroBody text-retro-ink shadow-[0_3px_0_rgba(0,0,0,0.6)] focus:outline-none focus:ring-2 focus:ring-retro-accent"
+          >
+            <option value="all">Todas as labels</option>
+            {board.availableLabels.map((label) => (
+              <option key={label.id} value={label.id}>
+                {label.name}
+              </option>
+            ))}
+          </select>
+          <select
+            value={filterListId}
+            onChange={(event) =>
+              setFilterListId(
+                event.target.value
+                  ? (event.target.value as string | "all")
+                  : "all"
+              )
+            }
+            className="rounded-full border-2 border-retro-ink/50 bg-retro-paper px-3 py-2 text-xs font-retroBody text-retro-ink shadow-[0_3px_0_rgba(0,0,0,0.6)] focus:outline-none focus:ring-2 focus:ring-retro-accent"
+          >
+            <option value="all">Todas as listas</option>
+            {board.lists.map((list) => (
+              <option key={list.id} value={list.id}>
+                {list.title}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="flex justify-end">
+          <button
+            type="button"
+            onClick={handleOpenCreateList}
+            className="inline-flex items-center gap-2 rounded-full border-2 border-retro-ink bg-retro-accent px-6 py-3 text-sm font-black uppercase tracking-[0.22em] text-retro-ink shadow-[0_3px_0_rgba(0,0,0,0.8)] transition-all hover:-translate-y-[1px] hover:bg-retro-accentSoft hover:shadow-[0_1px_0_rgba(0,0,0,0.8)] active:translate-y-[1px] active:shadow-none cursor-pointer"
+          >
+            <span className="text-base leading-none">+</span>
+            <span>Nova lista</span>
+          </button>
+        </div>
       </section>
       <DndContext
         sensors={sensors}
@@ -585,7 +746,7 @@ export function Board(props: BoardProps) {
             }}
           />
         )}
-        {isNewListModalOpen && (
+        {isListModalOpen && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -597,19 +758,15 @@ export function Board(props: BoardProps) {
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
               transition={{ type: "spring", duration: 0.3 }}
-              className="w-full max-w-md rounded-3xl border-[4px] border-retro-ink bg-retro-paper p-6 text-retro-ink shadow-retroPanel dark:border-retro-darkFrame/80 dark:bg-retro-darkSurface dark:text-retro-paper"
+              className="w-full max-w-md rounded-3xl border-[4px] border-retro-ink bg-retro-paper p-6 text-retro-ink shadow-retroPanel dark:border-retro-darkFrame/80 dark:bg-retro-darkSurface dark:text-retro-paper max-h-[90vh] overflow-y-auto"
             >
               <div className="mb-4 flex items-center justify-between gap-4">
                 <h2 className="font-retroHeading text-base font-black uppercase tracking-[0.22em] text-retro-ink dark:text-retro-paper">
-                  Nova lista
+                  {editingListId ? "Editar lista" : "Nova lista"}
                 </h2>
                 <button
                   type="button"
-                  onClick={() => {
-                    setIsNewListModalOpen(false);
-                    setNewListTitle("");
-                    setNewListFirstCardTitle("");
-                  }}
+                  onClick={() => setIsListModalOpen(false)}
                   className="rounded-full border-2 border-retro-ink/40 px-2 py-1 text-sm text-retro-ink/80 transition-colors hover:bg-retro-yellow hover:text-retro-ink dark:border-retro-darkFrame dark:text-retro-paper/80 dark:hover:bg-retro-darkSurface dark:hover:text-retro-paper cursor-pointer"
                 >
                   ×
@@ -621,25 +778,148 @@ export function Board(props: BoardProps) {
                     Título da lista
                   </label>
                   <input
-                    value={newListTitle}
-                    onChange={(event) => setNewListTitle(event.target.value)}
+                    value={listModalTitle}
+                    onChange={(event) => setListModalTitle(event.target.value)}
                     placeholder="Por exemplo: Em andamento"
                     className="w-full rounded-2xl border-[2px] border-retro-ink bg-retro-paper px-3 py-2 text-sm text-retro-ink shadow-sm focus:outline-none focus:ring-2 focus:ring-retro-accent dark:border-retro-darkFrame dark:bg-retro-darkPaper dark:text-retro-paper dark:focus:ring-retro-accentSoft"
                   />
                 </div>
+                {!editingListId && (
+                  <div>
+                    <label className="mb-1 block text-xs font-semibold uppercase tracking-[0.16em] text-retro-ink/80 dark:text-retro-paper/80">
+                      Primeiro cartão (opcional)
+                    </label>
+                    <input
+                      value={listModalFirstCardTitle}
+                      onChange={(event) =>
+                        setListModalFirstCardTitle(event.target.value)
+                      }
+                      placeholder="Título do primeiro cartão"
+                      className="w-full rounded-2xl border-[2px] border-retro-ink bg-retro-paper px-3 py-2 text-sm text-retro-ink shadow-sm focus:outline-none focus:ring-2 focus:ring-retro-accent dark:border-retro-darkFrame dark:bg-retro-darkPaper dark:text-retro-paper dark:focus:ring-retro-accentSoft"
+                    />
+                  </div>
+                )}
+
                 <div>
                   <label className="mb-1 block text-xs font-semibold uppercase tracking-[0.16em] text-retro-ink/80 dark:text-retro-paper/80">
-                    Primeiro cartão (opcional)
+                    Tags da lista
                   </label>
-                  <input
-                    value={newListFirstCardTitle}
-                    onChange={(event) =>
-                      setNewListFirstCardTitle(event.target.value)
-                    }
-                    placeholder="Título do primeiro cartão"
-                    className="w-full rounded-2xl border-[2px] border-retro-ink bg-retro-paper px-3 py-2 text-sm text-retro-ink shadow-sm focus:outline-none focus:ring-2 focus:ring-retro-accent dark:border-retro-darkFrame dark:bg-retro-darkPaper dark:text-retro-paper dark:focus:ring-retro-accentSoft"
-                  />
+                  <div className="mb-2 flex flex-wrap gap-2">
+                    {listModalLabels.map((label) => (
+                      <span
+                        key={label.id}
+                        className={`inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-bold uppercase tracking-wider ${label.color} border border-retro-ink/20`}
+                      >
+                        {label.name}
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setListModalLabels(
+                              listModalLabels.filter((l) => l.id !== label.id)
+                            )
+                          }
+                          className="ml-1 rounded-full bg-black/10 p-0.5 hover:bg-black/20"
+                        >
+                          ×
+                        </button>
+                      </span>
+                    ))}
+                    <button
+                      type="button"
+                      onClick={() => setIsCreatingLabel(!isCreatingLabel)}
+                      className="rounded-full border-2 border-dashed border-retro-ink/40 px-2 py-1 text-xs font-bold uppercase tracking-wider text-retro-ink/60 hover:border-retro-ink hover:text-retro-ink transition-colors cursor-pointer"
+                    >
+                      + Nova Tag
+                    </button>
+                  </div>
+
+                  {isCreatingLabel && (
+                    <div className="mb-4 rounded-xl border-2 border-retro-ink/20 bg-retro-paper/50 p-3">
+                      <form
+                        onSubmit={(e) => {
+                          e.preventDefault();
+                          const formData = new FormData(e.currentTarget);
+                          const name = formData.get("name") as string;
+                          const color = formData.get("color") as string;
+                          if (name && color) {
+                            addLabel({ name, color });
+                            setIsCreatingLabel(false);
+                          }
+                        }}
+                        className="flex flex-col gap-2"
+                      >
+                        <input
+                          name="name"
+                          placeholder="Nome da tag"
+                          autoFocus
+                          className="w-full rounded-lg border-2 border-retro-ink/20 bg-retro-paper px-2 py-1 text-sm focus:border-retro-accent focus:outline-none"
+                        />
+                        <div className="flex gap-2 overflow-x-auto pb-2">
+                          {[
+                            "bg-retro-red",
+                            "bg-retro-blue",
+                            "bg-retro-green",
+                            "bg-retro-yellow",
+                            "bg-retro-purple",
+                            "bg-retro-orange",
+                            "bg-retro-pink",
+                            "bg-retro-teal",
+                            "bg-retro-ink",
+                          ].map((color) => (
+                            <label key={color} className="cursor-pointer">
+                              <input
+                                type="radio"
+                                name="color"
+                                value={color}
+                                className="peer sr-only"
+                                defaultChecked={color === "bg-retro-blue"}
+                              />
+                              <div
+                                className={`h-6 w-6 rounded-full ${color} border-2 border-transparent peer-checked:border-retro-ink peer-checked:scale-110 transition-all shadow-sm`}
+                              />
+                            </label>
+                          ))}
+                        </div>
+                        <div className="flex justify-end gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setIsCreatingLabel(false)}
+                            className="text-xs font-bold uppercase text-retro-ink/60 hover:text-retro-ink"
+                          >
+                            Cancelar
+                          </button>
+                          <button
+                            type="submit"
+                            className="rounded-full bg-retro-ink px-3 py-1 text-xs font-bold uppercase text-retro-paper hover:bg-retro-ink/80"
+                          >
+                            Criar
+                          </button>
+                        </div>
+                      </form>
+                    </div>
+                  )}
+
+                  <div className="flex flex-wrap gap-2">
+                    {board.availableLabels
+                      .filter(
+                        (label) =>
+                          !listModalLabels.some((l) => l.id === label.id)
+                      )
+                      .map((label) => (
+                        <button
+                          key={label.id}
+                          type="button"
+                          onClick={() =>
+                            setListModalLabels([...listModalLabels, label])
+                          }
+                          className={`rounded-full border px-2 py-1 text-xs font-bold uppercase tracking-wider opacity-60 hover:opacity-100 transition-opacity ${label.color} border-retro-ink/20`}
+                        >
+                          {label.name}
+                        </button>
+                      ))}
+                  </div>
                 </div>
+
                 <div>
                   <label className="mb-1 block text-xs font-semibold uppercase tracking-[0.16em] text-retro-ink/80 dark:text-retro-paper/80">
                     Cor da lista
@@ -670,13 +950,13 @@ export function Board(props: BoardProps) {
                         accent: "bg-retro-accent",
                       };
 
-                      const isSelected = newListTone === tone;
+                      const isSelected = listModalTone === tone;
 
                       return (
                         <button
                           key={tone}
                           type="button"
-                          onClick={() => setNewListTone(tone)}
+                          onClick={() => setListModalTone(tone)}
                           className={`inline-flex items-center gap-2 rounded-full border-2 px-3 py-1 text-xs font-black uppercase tracking-[0.16em] text-retro-ink shadow-[0_2px_0_rgba(0,0,0,0.6)] transition-all cursor-pointer ${
                             toneBgMap[tone]
                           } ${
@@ -697,9 +977,10 @@ export function Board(props: BoardProps) {
                 <button
                   type="button"
                   onClick={() => {
-                    setIsNewListModalOpen(false);
-                    setNewListTitle("");
-                    setNewListFirstCardTitle("");
+                    setIsListModalOpen(false);
+                    setListModalTitle("");
+                    setListModalFirstCardTitle("");
+                    setListModalLabels([]);
                   }}
                   className="rounded-full border-2 border-retro-ink/40 px-3 py-2 text-sm font-black text-retro-ink/80 shadow-[0_3px_0_rgba(0,0,0,0.5)] transition-all hover:-translate-y-[1px] hover:bg-retro-frame/40 hover:shadow-[0_1px_0_rgba(0,0,0,0.5)] active:translate-y-[1px] active:shadow-none dark:border-retro-darkFrame dark:text-retro-paper/80 dark:hover:bg-retro-darkSurface cursor-pointer"
                 >
@@ -707,10 +988,10 @@ export function Board(props: BoardProps) {
                 </button>
                 <button
                   type="button"
-                  onClick={handleCreateList}
+                  onClick={handleSaveListModal}
                   className="rounded-full border-2 border-retro-ink bg-retro-accent px-3 py-2 text-sm font-black uppercase tracking-[0.22em] text-retro-ink shadow-[0_3px_0_rgba(0,0,0,0.8)] transition-all hover:-translate-y-[1px] hover:bg-retro-accentSoft hover:shadow-[0_1px_0_rgba(0,0,0,0.8)] active:translate-y-[1px] active:shadow-none dark:border-retro-darkFrame dark:text-retro-ink cursor-pointer"
                 >
-                  Criar lista
+                  {editingListId ? "Salvar" : "Criar lista"}
                 </button>
               </div>
             </motion.div>

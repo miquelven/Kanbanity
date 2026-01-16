@@ -91,8 +91,8 @@ export function CardModal({ card, onClose, onSave }: CardModalProps) {
             <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-retro-ink/80 dark:text-retro-paper/80">
               Etiquetas
             </label>
-            <div className="flex flex-wrap gap-2">
-              {AVAILABLE_LABELS.map((label) => {
+            <div className="flex flex-wrap gap-2 mb-3">
+              {availableLabels.map((label) => {
                 const isSelected = selectedLabels.some(
                   (l) => l.id === label.id
                 );
@@ -115,7 +115,50 @@ export function CardModal({ card, onClose, onSave }: CardModalProps) {
                   </button>
                 );
               })}
+              <button
+                type="button"
+                onClick={() => setIsCreatingLabel(!isCreatingLabel)}
+                className="rounded-full border-2 border-dashed border-retro-ink/40 px-2 py-1 text-xs font-bold uppercase tracking-wider text-retro-ink/60 hover:border-retro-ink hover:text-retro-ink transition-colors cursor-pointer"
+              >
+                + Nova Tag
+              </button>
             </div>
+
+            {isCreatingLabel && (
+              <div className="rounded-2xl border-2 border-retro-ink/20 bg-retro-ink/5 p-3 dark:border-retro-paper/20 dark:bg-retro-paper/5">
+                <div className="flex gap-2 mb-2">
+                  <input
+                    type="text"
+                    placeholder="Nome da tag"
+                    value={newLabelName}
+                    onChange={(e) => setNewLabelName(e.target.value)}
+                    className="flex-1 rounded-lg border-2 border-retro-ink/20 bg-retro-paper px-2 py-1 text-xs text-retro-ink focus:border-retro-accent focus:outline-none dark:bg-retro-darkPaper dark:text-retro-paper"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleCreateLabel}
+                    disabled={!newLabelName.trim()}
+                    className="rounded-lg bg-retro-ink px-3 py-1 text-xs font-bold text-retro-paper disabled:opacity-50 dark:bg-retro-paper dark:text-retro-ink"
+                  >
+                    OK
+                  </button>
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {LABEL_COLORS.map((color) => (
+                    <button
+                      key={color}
+                      type="button"
+                      onClick={() => setNewLabelColor(color)}
+                      className={`h-5 w-5 rounded-full border-2 ${color} ${
+                        newLabelColor === color
+                          ? "border-retro-ink scale-110 ring-1 ring-retro-ink ring-offset-1 dark:border-retro-paper dark:ring-retro-paper"
+                          : "border-transparent hover:scale-110"
+                      } transition-all`}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
         <div className="mt-6 flex justify-end gap-2">

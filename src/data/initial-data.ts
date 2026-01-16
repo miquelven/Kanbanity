@@ -4,6 +4,7 @@ import { AVAILABLE_LABELS } from "./labels";
 export const initialBoard: Board = {
   id: "board-1",
   title: "Quadro Kanban",
+  availableLabels: AVAILABLE_LABELS,
   lists: [
     {
       id: "list-1",
@@ -24,6 +25,7 @@ export const initialBoard: Board = {
           labels: [AVAILABLE_LABELS[7]], // DevOps
         },
       ],
+      labels: [],
     },
     {
       id: "list-2",
@@ -37,6 +39,7 @@ export const initialBoard: Board = {
           labels: [AVAILABLE_LABELS[1]], // Prioridade Alta
         },
       ],
+      labels: [],
     },
     {
       id: "list-3",
@@ -54,6 +57,7 @@ export const initialBoard: Board = {
           labels: [],
         },
       ],
+      labels: [],
     },
   ],
 };

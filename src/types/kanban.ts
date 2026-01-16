@@ -27,10 +27,12 @@ export interface List {
   title: string;
   tone?: ListTone;
   cards: Card[];
+  labels?: Label[];
 }
 
 export interface Board {
   id: string;
   title: string;
   lists: List[];
+  availableLabels: Label[];
 }

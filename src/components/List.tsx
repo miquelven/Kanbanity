@@ -13,6 +13,7 @@ type ListProps = ListType & {
   onStartAddCard: (listId: string) => void;
   onDeleteCard: (listId: string, cardId: string) => void;
   onDeleteList: (listId: string) => void;
+  onEditList: (listId: string) => void;
   onOpenCard: (listId: string, cardId: string) => void;
 };
 
@@ -176,10 +177,12 @@ export function List({
   id,
   title,
   cards,
+  labels,
   tone,
   onStartAddCard,
   onDeleteCard,
   onDeleteList,
+  onEditList,
   onOpenCard,
 }: ListProps) {
   const {
