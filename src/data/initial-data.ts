@@ -16,7 +16,7 @@ export const initialBoard: Board = {
           title: "Configurar projeto Kanbanity",
           content:
             "Criar estrutura inicial com Vite, React, TypeScript e Tailwind",
-          labels: [AVAILABLE_LABELS[0], AVAILABLE_LABELS[5]], // Urgente, Feature
+          labels: [AVAILABLE_LABELS[5]], // Feature
         },
         {
           id: "card-2",
@@ -30,7 +30,7 @@ export const initialBoard: Board = {
     {
       id: "list-2",
       title: "Em Progresso",
-      tone: "orange",
+      tone: "yellow",
       cards: [
         {
           id: "card-3",
