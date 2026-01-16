@@ -22,6 +22,7 @@ import { createPortal } from "react-dom";
 import { useBoard } from "../contexts/BoardContext";
 import { useBoardDragDrop } from "../hooks/useBoardDragDrop";
 import { useBoardFilters } from "../hooks/useBoardFilters";
+import { BoardStatsModal } from "./BoardStatsModal";
 
 type SelectedCard = {
   listId: string;
@@ -65,6 +66,7 @@ export function Board() {
   } = useBoardFilters();
 
   const [selectedCard, setSelectedCard] = useState<SelectedCard>(null);
+  const [isStatsOpen, setIsStatsOpen] = useState(false);
   const [newCardListId, setNewCardListId] = useState<string | null>(null);
   const [editingListId, setEditingListId] = useState<string | null>(null);
   const [listModalTitle, setListModalTitle] = useState("");
@@ -186,6 +188,12 @@ export function Board() {
           {board.title}
         </h1>
         <div className="flex items-center gap-4">
+          <button
+            onClick={() => setIsStatsOpen(true)}
+            className="rounded-full border-2 border-retro-ink bg-retro-paper px-4 py-1 text-sm font-bold font-retroHeading uppercase text-retro-ink shadow-[2px_2px_0_rgba(0,0,0,1)] hover:translate-y-[1px] hover:shadow-none transition-all"
+          >
+            Stats
+          </button>
           <input
             type="text"
             placeholder="Buscar cards..."
@@ -467,17 +475,26 @@ export function Board() {
         )}
       </AnimatePresence>
 
-      {selectedCardData && (
-        <CardModal
-          card={selectedCardData.card}
-          availableLabels={availableLabels}
-          onClose={() => setSelectedCard(null)}
-          onCreateLabel={addLabel}
-          onSave={(data) =>
-            updateCard(selectedCardData.listId, selectedCardData.card.id, data)
-          }
-        />
-      )}
+      <AnimatePresence>
+        {isStatsOpen && (
+          <BoardStatsModal onClose={() => setIsStatsOpen(false)} />
+        )}
+        {selectedCardData && (
+          <CardModal
+            card={selectedCardData.card}
+            availableLabels={availableLabels}
+            onClose={() => setSelectedCard(null)}
+            onCreateLabel={addLabel}
+            onSave={(data) =>
+              updateCard(
+                selectedCardData.listId,
+                selectedCardData.card.id,
+                data
+              )
+            }
+          />
+        )}
+      </AnimatePresence>
 
       {newCardListId && (
         <CardModal
