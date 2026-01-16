@@ -8,6 +8,7 @@ export const initialBoard: Board = {
     {
       id: "list-1",
       title: "A Fazer",
+      tone: "blue",
       cards: [
         {
           id: "card-1",
@@ -27,6 +28,7 @@ export const initialBoard: Board = {
     {
       id: "list-2",
       title: "Em Progresso",
+      tone: "orange",
       cards: [
         {
           id: "card-3",
@@ -39,6 +41,7 @@ export const initialBoard: Board = {
     {
       id: "list-3",
       title: "Concluído",
+      tone: "green",
       cards: [
         {
           id: "card-4",

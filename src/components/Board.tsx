@@ -22,6 +22,7 @@ import type {
   Card as CardType,
   Label,
   List as ListType,
+  ListTone,
 } from "../types/kanban";
 import { usePersistentState } from "../hooks/usePersistentState";
 import { List, ListContent } from "./List";
@@ -61,6 +62,7 @@ export function Board(props: BoardProps) {
   const [newListTitle, setNewListTitle] = useState("");
   const [isNewListModalOpen, setIsNewListModalOpen] = useState(false);
   const [newListFirstCardTitle, setNewListFirstCardTitle] = useState("");
+  const [newListTone, setNewListTone] = useState<ListTone>("blue");
   const [activeDragItem, setActiveDragItem] = useState<DragItem>(null);
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget>(null);
 
@@ -76,7 +78,7 @@ export function Board(props: BoardProps) {
     return `${prefix}-${Math.random().toString(36).slice(2, 9)}`;
   }
 
-  function addList(title: string, firstCardTitle?: string) {
+  function addList(title: string, firstCardTitle?: string, tone?: ListTone) {
     const trimmedTitle = title.trim();
     if (!trimmedTitle) {
       return;
@@ -105,6 +107,7 @@ export function Board(props: BoardProps) {
           {
             id: newListId,
             title: trimmedTitle,
+            tone: tone ?? "blue",
             cards: newCards,
           },
         ],
@@ -118,9 +121,10 @@ export function Board(props: BoardProps) {
       return;
     }
 
-    addList(newListTitle, newListFirstCardTitle);
+    addList(newListTitle, newListFirstCardTitle, newListTone);
     setNewListTitle("");
     setNewListFirstCardTitle("");
+    setNewListTone("blue");
     setIsNewListModalOpen(false);
   }
 
@@ -392,7 +396,7 @@ export function Board(props: BoardProps) {
       return { listId: list.id, card };
     })();
 
-  const listTones = [
+  const listTones: ListTone[] = [
     "blue",
     "purple",
     "pink",
@@ -401,7 +405,7 @@ export function Board(props: BoardProps) {
     "yellow",
     "green",
     "teal",
-  ] as const;
+  ];
 
   return (
     <div className="px-2 pb-4 pt-2 sm:px-4 sm:pb-6 sm:pt-3">
@@ -440,7 +444,7 @@ export function Board(props: BoardProps) {
               <List
                 key={list.id}
                 {...list}
-                tone={listTones[index % listTones.length]}
+                tone={list.tone ?? listTones[index % listTones.length]}
                 onStartAddCard={(listId) => setNewCardListId(listId)}
                 onDeleteCard={requestDeleteCard}
                 onDeleteList={requestDeleteList}
@@ -555,6 +559,58 @@ export function Board(props: BoardProps) {
                     placeholder="Título do primeiro cartão"
                     className="w-full rounded-2xl border-[2px] border-retro-ink bg-retro-paper px-3 py-2 text-sm text-retro-ink shadow-sm focus:outline-none focus:ring-2 focus:ring-retro-accent dark:border-retro-darkFrame dark:bg-retro-darkPaper dark:text-retro-paper dark:focus:ring-retro-accentSoft"
                   />
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs font-semibold uppercase tracking-[0.16em] text-retro-ink/80 dark:text-retro-paper/80">
+                    Cor da lista
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    {listTones.map((tone) => {
+                      const toneLabelMap: Record<ListTone, string> = {
+                        blue: "Azul",
+                        purple: "Roxo",
+                        pink: "Rosa",
+                        red: "Vermelho",
+                        orange: "Laranja",
+                        yellow: "Amarelo",
+                        green: "Verde",
+                        teal: "Verde-água",
+                        accent: "Destaque",
+                      };
+
+                      const toneBgMap: Record<ListTone, string> = {
+                        blue: "bg-retro-blue",
+                        purple: "bg-retro-purple",
+                        pink: "bg-retro-pink",
+                        red: "bg-retro-red",
+                        orange: "bg-retro-orange",
+                        yellow: "bg-retro-yellow",
+                        green: "bg-retro-green",
+                        teal: "bg-retro-teal",
+                        accent: "bg-retro-accent",
+                      };
+
+                      const isSelected = newListTone === tone;
+
+                      return (
+                        <button
+                          key={tone}
+                          type="button"
+                          onClick={() => setNewListTone(tone)}
+                          className={`inline-flex items-center gap-2 rounded-full border-2 px-3 py-1 text-xs font-black uppercase tracking-[0.16em] text-retro-ink shadow-[0_2px_0_rgba(0,0,0,0.6)] transition-all cursor-pointer ${
+                            toneBgMap[tone]
+                          } ${
+                            isSelected
+                              ? "ring-2 ring-retro-ink ring-offset-2 ring-offset-retro-paper"
+                              : "opacity-80 hover:opacity-100"
+                          }`}
+                        >
+                          <span className="h-3 w-3 rounded-full border border-retro-ink bg-retro-paper/40" />
+                          <span>{toneLabelMap[tone]}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
               <div className="mt-6 flex justify-end gap-2">

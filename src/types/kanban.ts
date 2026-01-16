@@ -1,3 +1,14 @@
+export type ListTone =
+  | "accent"
+  | "teal"
+  | "red"
+  | "blue"
+  | "purple"
+  | "green"
+  | "orange"
+  | "pink"
+  | "yellow";
+
 export interface Label {
   id: string;
   name: string;
@@ -14,6 +25,7 @@ export interface Card {
 export interface List {
   id: string;
   title: string;
+  tone?: ListTone;
   cards: Card[];
 }
 

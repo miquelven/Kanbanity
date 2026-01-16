@@ -4,20 +4,9 @@ import {
   useSortable,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import type { List as ListType } from "../types/kanban";
+import type { List as ListType, ListTone } from "../types/kanban";
 import { Card } from "./Card";
 import { forwardRef } from "react";
-
-type ListTone =
-  | "accent"
-  | "teal"
-  | "red"
-  | "blue"
-  | "purple"
-  | "green"
-  | "orange"
-  | "pink"
-  | "yellow";
 
 type ListProps = ListType & {
   tone: ListTone;
