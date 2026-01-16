@@ -363,24 +363,40 @@ export function Board(props: BoardProps) {
       return { listId: list.id, card };
     })();
 
+  const listTones = [
+    "blue",
+    "purple",
+    "pink",
+    "red",
+    "orange",
+    "yellow",
+    "green",
+    "teal",
+  ] as const;
+
   return (
-    <div className="p-6">
-      <header className="mb-6">
-        <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-50">
+    <div className="px-2 pb-4 pt-2 sm:px-4 sm:pb-6 sm:pt-3">
+      <header className="mb-6 flex items-center justify-between rounded-3xl border-[4px] border-retro-ink bg-retro-yellow px-6 py-4 shadow-retroPanel">
+        <h1 className="font-retroHeading text-4xl font-black uppercase tracking-[0.24em] text-retro-ink drop-shadow-sm dark:text-retro-ink">
           {board.title}
         </h1>
+        <div className="flex gap-2">
+          <div className="h-5 w-5 rounded-full bg-retro-red border-[3px] border-retro-ink shadow-retroCard"></div>
+          <div className="h-5 w-5 rounded-full bg-retro-green border-[3px] border-retro-ink shadow-retroCard"></div>
+          <div className="h-5 w-5 rounded-full bg-retro-blue border-[3px] border-retro-ink shadow-retroCard"></div>
+        </div>
       </header>
-      <section className="mb-4 flex gap-2">
+      <section className="mb-5 flex gap-2">
         <input
           value={newListTitle}
           onChange={(event) => setNewListTitle(event.target.value)}
           placeholder="Nova lista"
-          className="flex-1 rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-50 dark:placeholder:text-slate-500"
+          className="flex-1 rounded-xl border-2 border-retro-ink bg-white px-4 py-3 text-base font-medium text-retro-ink placeholder:text-retro-ink/40 shadow-retroCard focus:border-retro-blue focus:outline-none focus:ring-4 focus:ring-retro-blue/20"
         />
         <button
           type="button"
           onClick={() => addList(newListTitle)}
-          className="rounded-md bg-sky-600 px-3 py-2 text-sm font-medium text-white hover:bg-sky-500"
+          className="rounded-full border-2 border-retro-ink bg-retro-accent px-6 py-3 text-sm font-black uppercase tracking-[0.22em] text-retro-ink shadow-[0_3px_0_rgba(0,0,0,0.8)] transition-all hover:-translate-y-[1px] hover:bg-retro-accentSoft hover:shadow-[0_1px_0_rgba(0,0,0,0.8)] active:translate-y-[1px] active:shadow-none"
         >
           Adicionar lista
         </button>
@@ -396,10 +412,11 @@ export function Board(props: BoardProps) {
             items={board.lists.map((list) => list.id)}
             strategy={horizontalListSortingStrategy}
           >
-            {board.lists.map((list) => (
+            {board.lists.map((list, index) => (
               <List
                 key={list.id}
                 {...list}
+                tone={listTones[index % listTones.length]}
                 onStartAddCard={(listId) => setNewCardListId(listId)}
                 onDeleteCard={requestDeleteCard}
                 onDeleteList={requestDeleteList}
@@ -418,6 +435,7 @@ export function Board(props: BoardProps) {
               ) : (
                 <ListContent
                   {...activeDragItem.data}
+                  tone="accent"
                   onStartAddCard={() => {}}
                   onDeleteCard={() => {}}
                   onDeleteList={() => {}}
@@ -460,14 +478,14 @@ export function Board(props: BoardProps) {
           />
         )}
         {deleteTarget && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60">
-            <div className="w-full max-w-sm rounded-lg bg-white p-6 text-slate-900 shadow-xl dark:bg-slate-800 dark:text-slate-100">
-              <h2 className="mb-2 text-base font-semibold">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+            <div className="w-full max-w-sm rounded-lg border-[3px] border-retro-frame bg-retro-paper p-6 text-retro-ink shadow-retroPanel dark:border-zinc-700 dark:bg-zinc-900 dark:text-retro-paper">
+              <h2 className="mb-2 font-retroHeading text-base font-semibold tracking-[0.16em] uppercase">
                 {deleteTarget.type === "card"
                   ? "Excluir cartão"
                   : "Excluir lista"}
               </h2>
-              <p className="mb-4 text-sm text-slate-600 dark:text-slate-300">
+              <p className="mb-4 text-sm text-retro-ink/80 dark:text-retro-paper/80">
                 {deleteTarget.type === "card"
                   ? "Tem certeza que deseja excluir este cartão?"
                   : "Tem certeza que deseja excluir esta lista e todos os seus cartões?"}
@@ -476,7 +494,7 @@ export function Board(props: BoardProps) {
                 <button
                   type="button"
                   onClick={() => setDeleteTarget(null)}
-                  className="rounded-md px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700"
+                  className="rounded border border-retro-ink/30 px-3 py-2 text-sm font-medium text-retro-ink/80 transition-colors hover:bg-retro-frame/40 dark:border-retro-darkFrame dark:text-retro-paper/80 dark:hover:bg-retro-darkSurface"
                 >
                   Cancelar
                 </button>
@@ -493,7 +511,7 @@ export function Board(props: BoardProps) {
                     }
                     setDeleteTarget(null);
                   }}
-                  className="rounded-md bg-red-600 px-3 py-2 text-sm font-medium text-white hover:bg-red-500"
+                  className="rounded border border-retro-ink/40 bg-retro-red px-3 py-2 text-sm font-semibold text-retro-paper shadow-retroCard transition-colors hover:bg-retro-red/80"
                 >
                   Excluir
                 </button>

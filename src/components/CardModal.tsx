@@ -44,49 +44,51 @@ export function CardModal({ card, onClose, onSave }: CardModalProps) {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/25 backdrop-blur-sm"
     >
       <motion.div
         initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.9, opacity: 0 }}
         transition={{ type: "spring", duration: 0.3 }}
-        className="w-full max-w-lg rounded-lg bg-white p-6 text-slate-900 shadow-xl dark:bg-slate-800 dark:text-slate-100"
+        className="w-full max-w-xl rounded-3xl border-[4px] border-retro-ink bg-retro-paper p-7 text-retro-ink shadow-retroPanel dark:border-retro-darkFrame/80 dark:bg-retro-darkSurface dark:text-retro-paper"
       >
         <div className="mb-4 flex items-center justify-between gap-4">
-          <h2 className="text-lg font-semibold">Detalhes do cartão</h2>
+          <h2 className="font-retroHeading text-lg font-black uppercase tracking-[0.22em] text-retro-ink dark:text-retro-paper">
+            Detalhes do cartão
+          </h2>
           <button
             type="button"
             onClick={onClose}
-            className="rounded p-1 text-sm text-slate-500 hover:bg-slate-100 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-slate-200"
+            className="rounded-full border-2 border-retro-ink/40 px-2 py-1 text-sm text-retro-ink/80 transition-colors hover:bg-retro-yellow hover:text-retro-ink dark:border-retro-darkFrame dark:text-retro-paper/80 dark:hover:bg-retro-darkSurface dark:hover:text-retro-paper"
           >
             ×
           </button>
         </div>
         <div className="space-y-4">
           <div>
-            <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-400">
+            <label className="mb-1 block text-xs font-semibold uppercase tracking-[0.16em] text-retro-ink/80 dark:text-retro-paper/80">
               Título
             </label>
             <input
               value={title}
               onChange={(event) => setTitle(event.target.value)}
-              className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100"
+              className="w-full rounded-2xl border-[2px] border-retro-ink bg-retro-paper px-3 py-2 text-sm text-retro-ink shadow-sm focus:outline-none focus:ring-2 focus:ring-retro-accent dark:border-retro-darkFrame dark:bg-retro-darkPaper dark:text-retro-paper dark:focus:ring-retro-accentSoft"
             />
           </div>
           <div>
-            <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-400">
+            <label className="mb-1 block text-xs font-semibold uppercase tracking-[0.16em] text-retro-ink/80 dark:text-retro-paper/80">
               Descrição
             </label>
             <textarea
               value={content}
               onChange={(event) => setContent(event.target.value)}
               rows={4}
-              className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100"
+              className="w-full rounded-2xl border-[2px] border-retro-ink bg-retro-paper px-3 py-2 text-sm text-retro-ink shadow-sm focus:outline-none focus:ring-2 focus:ring-retro-accent dark:border-retro-darkFrame dark:bg-retro-darkPaper dark:text-retro-paper dark:focus:ring-retro-accentSoft"
             />
           </div>
           <div>
-            <label className="mb-2 block text-xs font-medium text-slate-600 dark:text-slate-400">
+            <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-retro-ink/80 dark:text-retro-paper/80">
               Etiquetas
             </label>
             <div className="flex flex-wrap gap-2">
@@ -94,17 +96,19 @@ export function CardModal({ card, onClose, onSave }: CardModalProps) {
                 const isSelected = selectedLabels.some(
                   (l) => l.id === label.id
                 );
+                const isDarkColor =
+                  label.color.includes("ink") || label.color.includes("red");
                 return (
                   <button
                     key={label.id}
                     type="button"
                     onClick={() => toggleLabel(label)}
-                    className={`rounded px-2 py-1 text-xs font-medium text-white transition-all ${
-                      label.color
-                    } ${
+                    className={`rounded-full border-2 px-2 py-1 text-xs font-black uppercase tracking-[0.2em] shadow-sm transition-all ${
                       isSelected
-                        ? "ring-2 ring-slate-600 ring-offset-1 dark:ring-slate-400 dark:ring-offset-slate-800"
-                        : "opacity-60 hover:opacity-100"
+                        ? `${label.color} border-retro-ink/80 ${
+                            isDarkColor ? "text-retro-paper" : "text-retro-ink"
+                          } ring-1 ring-retro-ink/70 ring-offset-1 ring-offset-retro-paper dark:border-retro-paper/80 dark:ring-retro-paper/70 dark:ring-offset-retro-darkSurface`
+                        : `border-retro-ink/25 bg-retro-paper text-retro-ink/70 hover:border-retro-ink/60 hover:text-retro-ink dark:border-retro-darkFrame dark:bg-retro-darkPaper dark:text-retro-paper/70 dark:hover:border-retro-paper/80 dark:hover:text-retro-paper`
                     }`}
                   >
                     {label.name}
@@ -118,14 +122,14 @@ export function CardModal({ card, onClose, onSave }: CardModalProps) {
           <button
             type="button"
             onClick={onClose}
-            className="rounded-md px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700"
+            className="rounded-full border-2 border-retro-ink/40 px-3 py-2 text-sm font-black text-retro-ink/80 shadow-[0_3px_0_rgba(0,0,0,0.5)] transition-all hover:-translate-y-[1px] hover:bg-retro-frame/40 hover:shadow-[0_1px_0_rgba(0,0,0,0.5)] active:translate-y-[1px] active:shadow-none dark:border-retro-darkFrame dark:text-retro-paper/80 dark:hover:bg-retro-darkSurface"
           >
             Fechar
           </button>
           <button
             type="button"
             onClick={handleSave}
-            className="rounded-md bg-sky-600 px-3 py-2 text-sm font-medium text-white hover:bg-sky-500"
+            className="rounded-full border-2 border-retro-ink bg-retro-accent px-3 py-2 text-sm font-black uppercase tracking-[0.22em] text-retro-ink shadow-[0_3px_0_rgba(0,0,0,0.8)] transition-all hover:-translate-y-[1px] hover:bg-retro-accentSoft hover:shadow-[0_1px_0_rgba(0,0,0,0.8)] active:translate-y-[1px] active:shadow-none dark:border-retro-darkFrame dark:text-retro-ink"
           >
             Salvar
           </button>
