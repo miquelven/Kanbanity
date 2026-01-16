@@ -1,4 +1,4 @@
-import { ReactNode } from "react";
+import type { ReactNode } from "react";
 import { usePersistentState } from "../hooks/usePersistentState";
 import type { Board, Card, Label, ListTone } from "../types/kanban";
 import { arrayMove } from "@dnd-kit/sortable";
@@ -188,7 +188,7 @@ export function BoardProvider({
   function moveCard(
     activeCardId: string,
     overId: string,
-    activeType: "Card" | "List",
+    _activeType: "Card" | "List",
     overType: "Card" | "List"
   ) {
     setBoard((currentBoard) => {
