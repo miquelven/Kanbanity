@@ -103,7 +103,7 @@ export const CardContent = forwardRef<HTMLDivElement, CardContentProps>(
                 event.stopPropagation();
                 onDelete?.();
               }}
-              className="opacity-0 group-hover:opacity-100 absolute -top-3 -right-3 flex h-7 w-7 items-center justify-center rounded-full border-2 border-retro-ink bg-retro-red text-retro-paper shadow-[0_3px_0_rgba(0,0,0,0.7)] transition-all hover:-translate-y-[1px] hover:shadow-[0_1px_0_rgba(0,0,0,0.7)] active:translate-y-[1px] dark:bg-retro-red/80"
+              className="opacity-0 group-hover:opacity-100 absolute -top-3 -right-3 flex h-7 w-7 items-center justify-center rounded-full border-2 border-retro-ink bg-retro-red text-retro-paper shadow-[0_3px_0_rgba(0,0,0,0.7)] transition-all hover:-translate-y-[1px] hover:shadow-[0_1px_0_rgba(0,0,0,0.7)] active:translate-y-[1px] dark:bg-retro-red/80 cursor-pointer"
               aria-label="Deletar cartão"
             >
               <svg
@@ -130,7 +130,7 @@ export const CardContent = forwardRef<HTMLDivElement, CardContentProps>(
               event.stopPropagation();
               onOpen?.();
             }}
-            className="rounded-full border-2 border-retro-ink bg-retro-accent px-4 py-1.5 text-[11px] font-black uppercase tracking-[0.22em] text-retro-ink shadow-[0_3px_0_rgba(0,0,0,0.8)] transition-all hover:-translate-y-[1px] hover:bg-retro-accentSoft hover:shadow-[0_1px_0_rgba(0,0,0,0.8)] active:translate-y-[1px] active:shadow-none"
+            className="rounded-full border-2 border-retro-ink bg-retro-accent px-4 py-1.5 text-[11px] font-black uppercase tracking-[0.22em] text-retro-ink shadow-[0_3px_0_rgba(0,0,0,0.8)] transition-all hover:-translate-y-[1px] hover:bg-retro-accentSoft hover:shadow-[0_1px_0_rgba(0,0,0,0.8)] active:translate-y-[1px] active:shadow-none cursor-pointer"
           >
             Abrir
           </button>

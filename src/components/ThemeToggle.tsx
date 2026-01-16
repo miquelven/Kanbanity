@@ -6,7 +6,7 @@ export function ThemeToggle() {
   return (
     <button
       onClick={toggleTheme}
-      className="flex items-center gap-2 rounded-full border-2 border-retro-ink bg-retro-paper/95 px-3 py-1.5 text-xs font-black uppercase tracking-[0.22em] text-retro-ink shadow-[0_3px_0_rgba(0,0,0,0.7)] transition-all hover:-translate-y-[1px] hover:bg-retro-accent hover:text-retro-ink hover:shadow-[0_1px_0_rgba(0,0,0,0.7)] active:translate-y-[1px] active:shadow-none dark:border-retro-darkFrame dark:bg-retro-darkPaper dark:text-retro-paper dark:hover:bg-retro-accent dark:hover:text-retro-ink"
+      className="flex items-center gap-2 rounded-full border-2 border-retro-ink bg-retro-paper/95 px-3 py-1.5 text-xs font-black uppercase tracking-[0.22em] text-retro-ink shadow-[0_3px_0_rgba(0,0,0,0.7)] transition-all hover:-translate-y-[1px] hover:bg-retro-accent hover:text-retro-ink hover:shadow-[0_1px_0_rgba(0,0,0,0.7)] active:translate-y-[1px] active:shadow-none dark:border-retro-darkFrame dark:bg-retro-darkPaper dark:text-retro-paper dark:hover:bg-retro-accent dark:hover:text-retro-ink cursor-pointer"
       aria-label="Alternar tema"
       title={
         theme === "light" ? "Mudar para modo escuro" : "Mudar para modo claro"

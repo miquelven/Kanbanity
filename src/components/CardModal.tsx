@@ -60,7 +60,7 @@ export function CardModal({ card, onClose, onSave }: CardModalProps) {
           <button
             type="button"
             onClick={onClose}
-            className="rounded-full border-2 border-retro-ink/40 px-2 py-1 text-sm text-retro-ink/80 transition-colors hover:bg-retro-yellow hover:text-retro-ink dark:border-retro-darkFrame dark:text-retro-paper/80 dark:hover:bg-retro-darkSurface dark:hover:text-retro-paper"
+            className="rounded-full border-2 border-retro-ink/40 px-2 py-1 text-sm text-retro-ink/80 transition-colors hover:bg-retro-yellow hover:text-retro-ink dark:border-retro-darkFrame dark:text-retro-paper/80 dark:hover:bg-retro-darkSurface dark:hover:text-retro-paper cursor-pointer"
           >
             ×
           </button>
@@ -103,7 +103,7 @@ export function CardModal({ card, onClose, onSave }: CardModalProps) {
                     key={label.id}
                     type="button"
                     onClick={() => toggleLabel(label)}
-                    className={`rounded-full border-2 px-2 py-1 text-xs font-black uppercase tracking-[0.2em] shadow-sm transition-all ${
+                    className={`rounded-full border-2 px-2 py-1 text-xs font-black uppercase tracking-[0.2em] shadow-sm transition-all cursor-pointer ${
                       isSelected
                         ? `${label.color} border-retro-ink/80 ${
                             isDarkColor ? "text-retro-paper" : "text-retro-ink"
@@ -122,14 +122,14 @@ export function CardModal({ card, onClose, onSave }: CardModalProps) {
           <button
             type="button"
             onClick={onClose}
-            className="rounded-full border-2 border-retro-ink/40 px-3 py-2 text-sm font-black text-retro-ink/80 shadow-[0_3px_0_rgba(0,0,0,0.5)] transition-all hover:-translate-y-[1px] hover:bg-retro-frame/40 hover:shadow-[0_1px_0_rgba(0,0,0,0.5)] active:translate-y-[1px] active:shadow-none dark:border-retro-darkFrame dark:text-retro-paper/80 dark:hover:bg-retro-darkSurface"
+            className="rounded-full border-2 border-retro-ink/40 px-3 py-2 text-sm font-black text-retro-ink/80 shadow-[0_3px_0_rgba(0,0,0,0.5)] transition-all hover:-translate-y-[1px] hover:bg-retro-frame/40 hover:shadow-[0_1px_0_rgba(0,0,0,0.5)] active:translate-y-[1px] active:shadow-none dark:border-retro-darkFrame dark:text-retro-paper/80 dark:hover:bg-retro-darkSurface cursor-pointer"
           >
             Fechar
           </button>
           <button
             type="button"
             onClick={handleSave}
-            className="rounded-full border-2 border-retro-ink bg-retro-accent px-3 py-2 text-sm font-black uppercase tracking-[0.22em] text-retro-ink shadow-[0_3px_0_rgba(0,0,0,0.8)] transition-all hover:-translate-y-[1px] hover:bg-retro-accentSoft hover:shadow-[0_1px_0_rgba(0,0,0,0.8)] active:translate-y-[1px] active:shadow-none dark:border-retro-darkFrame dark:text-retro-ink"
+            className="rounded-full border-2 border-retro-ink bg-retro-accent px-3 py-2 text-sm font-black uppercase tracking-[0.22em] text-retro-ink shadow-[0_3px_0_rgba(0,0,0,0.8)] transition-all hover:-translate-y-[1px] hover:bg-retro-accentSoft hover:shadow-[0_1px_0_rgba(0,0,0,0.8)] active:translate-y-[1px] active:shadow-none dark:border-retro-darkFrame dark:text-retro-ink cursor-pointer"
           >
             Salvar
           </button>

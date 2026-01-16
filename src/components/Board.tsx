@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import {
   DndContext,
   closestCorners,
@@ -59,6 +59,8 @@ export function Board(props: BoardProps) {
   const [selectedCard, setSelectedCard] = useState<SelectedCard>(null);
   const [newCardListId, setNewCardListId] = useState<string | null>(null);
   const [newListTitle, setNewListTitle] = useState("");
+  const [isNewListModalOpen, setIsNewListModalOpen] = useState(false);
+  const [newListFirstCardTitle, setNewListFirstCardTitle] = useState("");
   const [activeDragItem, setActiveDragItem] = useState<DragItem>(null);
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget>(null);
 
@@ -74,25 +76,52 @@ export function Board(props: BoardProps) {
     return `${prefix}-${Math.random().toString(36).slice(2, 9)}`;
   }
 
-  function addList(title: string) {
+  function addList(title: string, firstCardTitle?: string) {
     const trimmedTitle = title.trim();
     if (!trimmedTitle) {
       return;
     }
 
-    setBoard((currentBoard) => ({
-      ...currentBoard,
-      lists: [
-        ...currentBoard.lists,
-        {
-          id: createId("list"),
-          title: trimmedTitle,
-          cards: [],
-        },
-      ],
-    }));
+    const trimmedFirstCardTitle = firstCardTitle?.trim();
 
+    setBoard((currentBoard) => {
+      const newListId = createId("list");
+      const newCards =
+        trimmedFirstCardTitle && trimmedFirstCardTitle.length > 0
+          ? [
+              {
+                id: createId("card"),
+                title: trimmedFirstCardTitle,
+                content: undefined,
+                labels: [],
+              },
+            ]
+          : [];
+
+      return {
+        ...currentBoard,
+        lists: [
+          ...currentBoard.lists,
+          {
+            id: newListId,
+            title: trimmedTitle,
+            cards: newCards,
+          },
+        ],
+      };
+    });
+  }
+
+  function handleCreateList() {
+    const trimmedTitle = newListTitle.trim();
+    if (!trimmedTitle) {
+      return;
+    }
+
+    addList(newListTitle, newListFirstCardTitle);
     setNewListTitle("");
+    setNewListFirstCardTitle("");
+    setIsNewListModalOpen(false);
   }
 
   function deleteList(listId: string) {
@@ -386,19 +415,14 @@ export function Board(props: BoardProps) {
           <div className="h-5 w-5 rounded-full bg-retro-blue border-[3px] border-retro-ink shadow-retroCard"></div>
         </div>
       </header>
-      <section className="mb-5 flex gap-2">
-        <input
-          value={newListTitle}
-          onChange={(event) => setNewListTitle(event.target.value)}
-          placeholder="Nova lista"
-          className="flex-1 rounded-xl border-2 border-retro-ink bg-white px-4 py-3 text-base font-medium text-retro-ink placeholder:text-retro-ink/40 shadow-retroCard focus:border-retro-blue focus:outline-none focus:ring-4 focus:ring-retro-blue/20"
-        />
+      <section className="mb-5 flex justify-end">
         <button
           type="button"
-          onClick={() => addList(newListTitle)}
-          className="rounded-full border-2 border-retro-ink bg-retro-accent px-6 py-3 text-sm font-black uppercase tracking-[0.22em] text-retro-ink shadow-[0_3px_0_rgba(0,0,0,0.8)] transition-all hover:-translate-y-[1px] hover:bg-retro-accentSoft hover:shadow-[0_1px_0_rgba(0,0,0,0.8)] active:translate-y-[1px] active:shadow-none"
+          onClick={() => setIsNewListModalOpen(true)}
+          className="inline-flex items-center gap-2 rounded-full border-2 border-retro-ink bg-retro-accent px-6 py-3 text-sm font-black uppercase tracking-[0.22em] text-retro-ink shadow-[0_3px_0_rgba(0,0,0,0.8)] transition-all hover:-translate-y-[1px] hover:bg-retro-accentSoft hover:shadow-[0_1px_0_rgba(0,0,0,0.8)] active:translate-y-[1px] active:shadow-none cursor-pointer"
         >
-          Adicionar lista
+          <span className="text-base leading-none">+</span>
+          <span>Nova lista</span>
         </button>
       </section>
       <DndContext
@@ -477,6 +501,85 @@ export function Board(props: BoardProps) {
             }}
           />
         )}
+        {isNewListModalOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/25 backdrop-blur-sm"
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              transition={{ type: "spring", duration: 0.3 }}
+              className="w-full max-w-md rounded-3xl border-[4px] border-retro-ink bg-retro-paper p-6 text-retro-ink shadow-retroPanel dark:border-retro-darkFrame/80 dark:bg-retro-darkSurface dark:text-retro-paper"
+            >
+              <div className="mb-4 flex items-center justify-between gap-4">
+                <h2 className="font-retroHeading text-base font-black uppercase tracking-[0.22em] text-retro-ink dark:text-retro-paper">
+                  Nova lista
+                </h2>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsNewListModalOpen(false);
+                    setNewListTitle("");
+                    setNewListFirstCardTitle("");
+                  }}
+                  className="rounded-full border-2 border-retro-ink/40 px-2 py-1 text-sm text-retro-ink/80 transition-colors hover:bg-retro-yellow hover:text-retro-ink dark:border-retro-darkFrame dark:text-retro-paper/80 dark:hover:bg-retro-darkSurface dark:hover:text-retro-paper cursor-pointer"
+                >
+                  ×
+                </button>
+              </div>
+              <div className="space-y-4">
+                <div>
+                  <label className="mb-1 block text-xs font-semibold uppercase tracking-[0.16em] text-retro-ink/80 dark:text-retro-paper/80">
+                    Título da lista
+                  </label>
+                  <input
+                    value={newListTitle}
+                    onChange={(event) => setNewListTitle(event.target.value)}
+                    placeholder="Por exemplo: Em andamento"
+                    className="w-full rounded-2xl border-[2px] border-retro-ink bg-retro-paper px-3 py-2 text-sm text-retro-ink shadow-sm focus:outline-none focus:ring-2 focus:ring-retro-accent dark:border-retro-darkFrame dark:bg-retro-darkPaper dark:text-retro-paper dark:focus:ring-retro-accentSoft"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs font-semibold uppercase tracking-[0.16em] text-retro-ink/80 dark:text-retro-paper/80">
+                    Primeiro cartão (opcional)
+                  </label>
+                  <input
+                    value={newListFirstCardTitle}
+                    onChange={(event) =>
+                      setNewListFirstCardTitle(event.target.value)
+                    }
+                    placeholder="Título do primeiro cartão"
+                    className="w-full rounded-2xl border-[2px] border-retro-ink bg-retro-paper px-3 py-2 text-sm text-retro-ink shadow-sm focus:outline-none focus:ring-2 focus:ring-retro-accent dark:border-retro-darkFrame dark:bg-retro-darkPaper dark:text-retro-paper dark:focus:ring-retro-accentSoft"
+                  />
+                </div>
+              </div>
+              <div className="mt-6 flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsNewListModalOpen(false);
+                    setNewListTitle("");
+                    setNewListFirstCardTitle("");
+                  }}
+                  className="rounded-full border-2 border-retro-ink/40 px-3 py-2 text-sm font-black text-retro-ink/80 shadow-[0_3px_0_rgba(0,0,0,0.5)] transition-all hover:-translate-y-[1px] hover:bg-retro-frame/40 hover:shadow-[0_1px_0_rgba(0,0,0,0.5)] active:translate-y-[1px] active:shadow-none dark:border-retro-darkFrame dark:text-retro-paper/80 dark:hover:bg-retro-darkSurface cursor-pointer"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  onClick={handleCreateList}
+                  className="rounded-full border-2 border-retro-ink bg-retro-accent px-3 py-2 text-sm font-black uppercase tracking-[0.22em] text-retro-ink shadow-[0_3px_0_rgba(0,0,0,0.8)] transition-all hover:-translate-y-[1px] hover:bg-retro-accentSoft hover:shadow-[0_1px_0_rgba(0,0,0,0.8)] active:translate-y-[1px] active:shadow-none dark:border-retro-darkFrame dark:text-retro-ink cursor-pointer"
+                >
+                  Criar lista
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
         {deleteTarget && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
             <div className="w-full max-w-sm rounded-lg border-[3px] border-retro-frame bg-retro-paper p-6 text-retro-ink shadow-retroPanel dark:border-zinc-700 dark:bg-zinc-900 dark:text-retro-paper">
@@ -494,7 +597,7 @@ export function Board(props: BoardProps) {
                 <button
                   type="button"
                   onClick={() => setDeleteTarget(null)}
-                  className="rounded border border-retro-ink/30 px-3 py-2 text-sm font-medium text-retro-ink/80 transition-colors hover:bg-retro-frame/40 dark:border-retro-darkFrame dark:text-retro-paper/80 dark:hover:bg-retro-darkSurface"
+                  className="rounded border border-retro-ink/30 px-3 py-2 text-sm font-medium text-retro-ink/80 transition-colors hover:bg-retro-frame/40 dark:border-retro-darkFrame dark:text-retro-paper/80 dark:hover:bg-retro-darkSurface cursor-pointer"
                 >
                   Cancelar
                 </button>
@@ -511,7 +614,7 @@ export function Board(props: BoardProps) {
                     }
                     setDeleteTarget(null);
                   }}
-                  className="rounded border border-retro-ink/40 bg-retro-red px-3 py-2 text-sm font-semibold text-retro-paper shadow-retroCard transition-colors hover:bg-retro-red/80"
+                  className="rounded border border-retro-ink/40 bg-retro-red px-3 py-2 text-sm font-semibold text-retro-paper shadow-retroCard transition-colors hover:bg-retro-red/80 cursor-pointer"
                 >
                   Excluir
                 </button>

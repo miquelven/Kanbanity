@@ -117,7 +117,7 @@ export const ListContent = forwardRef<HTMLDivElement, ListContentProps>(
             type="button"
             onPointerDown={(e) => e.stopPropagation()}
             onClick={() => onDeleteList(id)}
-            className="flex h-6 w-6 items-center justify-center rounded-full bg-white/20 text-retro-ink transition-colors hover:bg-white/40"
+            className="flex h-6 w-6 items-center justify-center rounded-full bg-white/20 text-retro-ink transition-all hover:-translate-y-[1px] hover:bg-white/40 active:translate-y-[1px] cursor-pointer"
             aria-label="Deletar lista"
           >
             <svg
@@ -164,7 +164,7 @@ export const ListContent = forwardRef<HTMLDivElement, ListContentProps>(
         <button
           type="button"
           onClick={() => onStartAddCard(id)}
-          className={`mx-2 mb-3 flex items-center justify-center gap-1.5 rounded-full px-3 py-2 text-xs font-black uppercase tracking-[0.22em] text-retro-ink shadow-[0_3px_0_rgba(0,0,0,0.8)] transition-all hover:-translate-y-[1px] hover:shadow-[0_1px_0_rgba(0,0,0,0.8)] active:translate-y-[1px] active:shadow-none ${toneAddButtonClasses[tone]}`}
+          className={`mx-2 mb-3 flex items-center justify-center gap-1.5 rounded-full px-3 py-2 text-xs font-black uppercase tracking-[0.22em] text-retro-ink shadow-[0_3px_0_rgba(0,0,0,0.8)] transition-all hover:-translate-y-[1px] hover:shadow-[0_1px_0_rgba(0,0,0,0.8)] active:translate-y-[1px] active:shadow-none cursor-pointer ${toneAddButtonClasses[tone]}`}
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
