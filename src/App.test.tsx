@@ -1,9 +1,4 @@
-import {
-  render,
-  screen,
-  fireEvent,
-  waitForElementToBeRemoved,
-} from "@testing-library/react";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { describe, it, expect, beforeEach } from "vitest";
 import App from "./App";
 
@@ -48,7 +43,9 @@ describe("Board Integration Tests", () => {
 
     // Wait for list modal to close (it might take time due to animation)
     // We check if "Nova Lista" title (from modal) is gone
-    await waitForElementToBeRemoved(() => screen.queryByText("Nova Lista"));
+    await waitFor(() =>
+      expect(screen.queryByText("Nova Lista")).not.toBeInTheDocument()
+    );
 
     // Find the "Adicionar cartão" button
     // Note: The text is "Adicionar cartão", not "Adicionar card"
@@ -98,17 +95,84 @@ describe("Board Integration Tests", () => {
     );
     expect(listHeading).toBeInTheDocument();
 
-    // 2. Unmount component to simulate page reload/close
+    // 2. Unmount App (simulating refresh/close)
     unmount();
 
     // 3. Render App again
     render(<App />);
 
-    // 4. Verify if the list is still there
-    const headingsAfterReload = screen.getAllByRole("heading", { level: 3 });
-    const listHeadingAfterReload = headingsAfterReload.find(
+    // 4. Check if data persists
+    const headingsAfter = screen.getAllByRole("heading", { level: 3 });
+    const listHeadingAfter = headingsAfter.find(
       (h) => h.textContent === "Lista Persistente"
     );
-    expect(listHeadingAfterReload).toBeInTheDocument();
+    expect(listHeadingAfter).toBeInTheDocument();
+  });
+
+  it("should edit an existing card and close the modal", async () => {
+    const { container } = render(<App />);
+
+    // 1. Create List
+    const newListButton = screen.getByText("Nova lista");
+    fireEvent.click(newListButton);
+    const titleInput = screen.getByPlaceholderText("Ex: A Fazer");
+    fireEvent.change(titleInput, { target: { value: "Lista de Edição" } });
+    const saveButton = screen.getByText("Salvar");
+    fireEvent.click(saveButton);
+    await waitFor(() =>
+      expect(screen.queryByText("Nova Lista")).not.toBeInTheDocument()
+    );
+
+    // 2. Create Card
+    const addCardButtons = screen.getAllByText("Adicionar cartão");
+    const targetAddButton = addCardButtons[addCardButtons.length - 1];
+    fireEvent.click(targetAddButton);
+    const cardTitleInput = screen.getByPlaceholderText("Ex: Comprar leite");
+    fireEvent.change(cardTitleInput, { target: { value: "Cartão Original" } });
+    const saveCardButton = screen.getByText("Salvar");
+    fireEvent.click(saveCardButton);
+    // Wait for create modal to close
+    await waitFor(() =>
+      expect(screen.queryByText("Detalhes do cartão")).not.toBeInTheDocument()
+    );
+
+    // 3. Open Card for Editing
+    const openButtons = screen.getAllByText("Abrir");
+    const targetOpenButton = openButtons[openButtons.length - 1];
+    fireEvent.click(targetOpenButton);
+
+    // 4. Verify Modal Open
+    expect(screen.getByText("Detalhes do cartão")).toBeInTheDocument();
+
+    // 5. Edit Card
+    const editTitleInput = screen.getByDisplayValue("Cartão Original");
+    fireEvent.change(editTitleInput, { target: { value: "Cartão Editado" } });
+
+    // Edit Date
+    // Use container query selector for date input since it lacks aria-label/id
+    const dateInput = container.querySelector('input[type="date"]');
+    if (!dateInput) throw new Error("Date input not found");
+    fireEvent.change(dateInput, { target: { value: "2024-12-31" } });
+
+    // 6. Save
+    // The modal has a "Salvar" button.
+    // Note: There might be multiple "Salvar" buttons if other modals are hidden?
+    // No, modals are conditionally rendered.
+    const saveEditButton = screen.getByText("Salvar");
+    fireEvent.click(saveEditButton);
+
+    // 7. Verify Modal Closed
+    await waitFor(() =>
+      expect(screen.queryByText("Detalhes do cartão")).not.toBeInTheDocument()
+    );
+
+    // 8. Verify Card Updated
+    expect(screen.getByText("Cartão Editado")).toBeInTheDocument();
+
+    // 9. Verify Date updated (tooltip or visual indicator)
+    // The card component renders date in a span inside a div with title="Vence em: YYYY-MM-DD"
+    // The text content is formatted date.
+    // "2024-12-31" -> "31/12"
+    expect(screen.getByText("31/12")).toBeInTheDocument();
   });
 });

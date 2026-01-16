@@ -485,13 +485,14 @@ export function Board() {
             availableLabels={availableLabels}
             onClose={() => setSelectedCard(null)}
             onCreateLabel={addLabel}
-            onSave={(data) =>
+            onSave={(data) => {
               updateCard(
                 selectedCardData.listId,
                 selectedCardData.card.id,
                 data
-              )
-            }
+              );
+              setSelectedCard(null);
+            }}
           />
         )}
       </AnimatePresence>

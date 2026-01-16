@@ -170,10 +170,14 @@ export const CardContent = forwardRef<HTMLDivElement, CardContentProps>(
                   <span className="h-2 w-2 rounded-full border border-retro-ink bg-retro-yellow shadow-[0_1px_0_rgba(0,0,0,0.5)]"></span>
                 )}
                 <span className="text-[10px] font-bold text-retro-ink/70 dark:text-retro-paper/70">
-                  {new Date(dueDate!).toLocaleDateString("pt-BR", {
-                    day: "2-digit",
-                    month: "2-digit",
-                  })}
+                  {(() => {
+                    const date = new Date(dueDate!);
+                    const day = date.getUTCDate().toString().padStart(2, "0");
+                    const month = (date.getUTCMonth() + 1)
+                      .toString()
+                      .padStart(2, "0");
+                    return `${day}/${month}`;
+                  })()}
                 </span>
               </div>
             )}
