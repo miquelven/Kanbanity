@@ -1,5 +1,5 @@
 import { Board } from "./components/Board";
-import { BoardProvider } from "./contexts/BoardContext";
+import { BoardProvider } from "./contexts/BoardProvider";
 import { initialBoard } from "./data/initial-data";
 
 function App() {
